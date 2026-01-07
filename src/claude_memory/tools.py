@@ -98,8 +98,6 @@ class MemoryService:
 
         # For MVP: We will insert node without embedding, or compute it if we have 'sentence_transformers'
 
-        from sentence_transformers import SentenceTransformer
-
         encoder = SentenceTransformer("all-MiniLM-L6-v2")
         embedding = encoder.encode(params.name + " " + str(props.get("description", ""))).tolist()
         props["embedding"] = embedding
@@ -174,8 +172,6 @@ class MemoryService:
 
                 new_name = props.get("name", curr_name)
                 new_desc = props.get("description", curr_desc)
-
-                from sentence_transformers import SentenceTransformer
 
                 encoder = SentenceTransformer("all-MiniLM-L6-v2")
                 embedding = encoder.encode(new_name + " " + str(new_desc)).tolist()
