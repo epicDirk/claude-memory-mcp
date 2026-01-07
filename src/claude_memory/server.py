@@ -158,6 +158,18 @@ async def record_breakthrough(
 
 
 @mcp.tool()  # type: ignore
+async def get_neighbors(entity_id: str, depth: int = 1, limit: int = 20) -> List[Dict[str, Any]]:
+    """Retrieve neighboring entities up to a certain depth."""
+    return await service.get_neighbors(entity_id, depth, limit)  # type: ignore
+
+
+@mcp.tool()  # type: ignore
+async def traverse_path(from_id: str, to_id: str) -> List[Dict[str, Any]]:
+    """Find the shortest path between two entities."""
+    return await service.traverse_path(from_id, to_id)  # type: ignore
+
+
+@mcp.tool()  # type: ignore
 async def search_memory(
     query: str, project_id: Optional[str] = None, limit: int = 10
 ) -> List[Dict[str, Any]]:

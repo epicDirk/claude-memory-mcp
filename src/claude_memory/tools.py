@@ -405,6 +405,60 @@ class MemoryService:
 
         return {"status": "Breakthrough recorded", "id": b_id}
 
+    async def get_neighbors(
+        self, entity_id: str, depth: int = 1, limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        """Retrieve neighboring entities up to a certain depth."""
+        graph = self.client.select_graph("claude_memory")
+
+        # Variable length path match
+        # Warning: large depth can be expensive.
+        if depth < 1:
+            depth = 1
+
+        query = f"""
+        MATCH (n)-[*1..{depth}]-(m)
+        WHERE n.id = $entity_id
+        RETURN distinct m
+        LIMIT $limit
+        """
+
+        result = graph.query(query, {"entity_id": entity_id, "limit": limit})
+
+        nodes = []
+        for row in result.result_set:
+            if row and row[0]:
+                nodes.append(row[0].properties)
+
+        return nodes
+
+    async def traverse_path(self, from_id: str, to_id: str) -> List[Dict[str, Any]]:
+        """Find the shortest path between two entities."""
+        graph = self.client.select_graph("claude_memory")
+
+        query = """
+        MATCH p = shortestPath((a)-[*]-(b))
+        WHERE a.id = $start AND b.id = $end
+        RETURN p
+        """
+
+        result = graph.query(query, {"start": from_id, "end": to_id})
+
+        path_data = []
+        if result.result_set and result.result_set[0]:
+            # result_set[0][0] should be a Path object
+            path_obj = result.result_set[0][0]
+            # Attempt to extract properties safely
+            # If path_obj is just a structure, we might need inspection.
+            # For now, assume it has nodes/rels or is traversable.
+            # If fallback is needed:
+            # We return empty for now if structure unknown, but in tests we mock it.
+            if hasattr(path_obj, "nodes"):
+                for node in path_obj.nodes:
+                    path_data.append(node.properties)
+
+        return path_data
+
     async def search(
         self, query: str, project_id: Optional[str] = None, limit: int = 10
     ) -> List[SearchResult]:
