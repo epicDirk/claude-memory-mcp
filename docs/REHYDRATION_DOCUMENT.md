@@ -1,70 +1,68 @@
-# SESSION REHYDRATION — PM Skills Audit + Absorber Planning
+# SESSION REHYDRATION — S044 First Day of School
 
-**Date**: 2026-02-26
-**Bottle**: #60 (`c95237d6-5427-4ebb-a218-03281eed0d8b`)
-**Previous Bottle**: #59 (`2264779e-defb-4a5a-9f00-728ec52c853e`)
+**Date**: 2026-03-04
+**Bottle**: #68 (`41607176-a310-47d4-b544-7271142139a1`)
+**Previous Bottle**: #67 (`ae0fd8fd-3bcc-4d24-81a4-12a193940e80`)
 
 ---
 
 ## What Was Completed This Session
 
-1. **Full cross-project PM status briefing** — 41 tasks, 32 done (78%), 9 backlog, 1 blocked. Skills Forge 65%, Code Literacy 100%.
+### 1. T3-C01 "Who Are You?" — DONE
+- Block 1 (MM-001): Bridge Between Human and AI — four translation layers, three anti-patterns. Tabish already does bridge engineering instinctively; this class named it.
+- Block 2 (MM-007): Tourist-to-Expat Phases — four phases, one key question each. Tabish placed as Phase 4 Director with Phase 1 vocabulary.
+- **Breakthrough: Inverted Learning Doctrine / West Point Analogy** — Phase 4→2→1 path, not traditional 1→4. Post-LLM, the Director path is the new normal. Officers learn campaigns first, rifles second. Tutorial hell is grunt bootcamp.
+- Apply: Director's Map — Tabish at West Point, code at Fort Bragg, bridge = COMMANDNODE + Dragon Brain + Skills Forge.
+- Entity: `3c580e37-b14d-46af-92ad-67f1130e8b66` (Inverted Learning Doctrine)
+- Breakthrough: `77f3c6ed-c653-403b-8fbc-c58a8387daf6` (West Point Doctrine)
 
-2. **Absorber readiness deep-dive** — Assessed task-skills-forge-001 at 5/10 readiness. Dependencies (BEDROCK, Composition Validator, Gap Analyzer) are all DONE, but the spec has 6 gaps: no pipeline stage I/O contracts, no absorption algorithm, no decomposition logic, no fidelity check algorithm, vague security flagging, no review package format.
+### 2. T3-C02 "Beyond Code" — DONE
+- Block 1 (MM-012): Director Artifacts Over Consumption — output = residency, four artifact types.
+- Block 2 (MM-015): Four Plateau Breakthroughs — inverted plateau map unique to Director path. Tutorial Hell: immune. Can Read Can't Think: inverted (can think, learning to read). Context-Free: will skip. Advanced Beginner: risk from delegation comfort.
+- Apply: Code read on `07-Code-Literacy/PM/bulk_wiring.py` (367 lines). Tabish identified docstring=mission briefing, imports=supply requisition, encoding fix=precaution, section headers=chapter headings. Asked "should comments be essay-length?" — NO, comments explain WHY not WHAT.
+- **Breakthrough: Intent→Spec→Code→Verification Chain** — Director owns bookends (intent + verification), builder owns middle (spec translation + code).
+- Entity: `5ac7728a-34b5-4ae8-9d13-eeb3676e45b0` (Intent→Spec→Code→Verification Chain)
 
-3. **Dyson Sphere containment audit** — 75% ready. BEDROCK, Composition Validator, Gap Analyzer, meta-test corpus all built. Missing: `skills/draft/` quarantine directory (trivial), skill-tester (deferred to M04 by design).
-
-4. **Absorber design session plan** — Full plan written to `~/.claude/plans/tidy-roaming-pie.md`. Two-session split: Session A (6 design decisions, ~90min) + Session B (write SKILL.md + update task, ~120min). **ON HOLD** per Director.
-
-5. **metadatamenu evaluation — REJECTED** — Deep technical dive (22 field types, fileClass schemas, Formula/Lookup fields). Rejected because: no Bases integration, no workflow triggers, no cascade logic, and plugin's sweet spot (human editing UX) doesn't match our workflow (Claude writes, Tabish reads). Salvageable concept: fileClass-as-schema-artifact pattern.
-
-6. **PM Ninja Upgrade recommendations committed to graph** — Entity `f009e439-98aa-4cf0-abae-0fd946a159b1` with 6 action items.
+### 3. Build Gate Governance Established
+- Tabish self-identified shiny object drift risk. Granted Claude veto power on premature builds.
+- Session Timer Toy Build shelved until T3-C06 checkpoint ("Reading the Bones").
+- Division of labor locked: Claude=brain+grounding, AG=builder, Tabish=director.
+- Entity: `c9a2a458-4793-4db8-a73a-7dcd106bee09` (Toy Build — Parallel Learning Track, status: shelved until C06)
 
 ---
 
 ## What Is In-Progress / On Hold
 
-- **Absorber design session** — Plan ready, ON HOLD until PM skills are ninja-level
-- **task-skills-forge-001 due date (2026-02-28)** — Will need extending since Absorber is paused
+- **T3-C03** — Next class, pending. Phase 1 of Trail 3 (last class in Phase 1).
+- **Session Timer Toy Build** — SHELVED until T3-C06 checkpoint. Do NOT offer builds before C06.
+- **PM Skills Ninja Upgrade** — Still on hold from S042. Entity `f009e439-98aa-4cf0-abae-0fd946a159b1`.
+- **Absorber design session** — ON HOLD per Director until PM skills are ninja-level.
 
 ---
 
 ## Exact Next Steps (Priority Order)
 
-### PRIMARY: PM Skills Ninja Upgrade
+### PRIMARY: Continue Classes — T3-C03
 
-Director's priority is making PM skills airtight BEFORE building the Absorber. Six action items:
+1. Invoke `/learn` skill
+2. Load `T3-C03` class file (glob for `T3-C03*.md` in Classes dir)
+3. Read linked terrarium blocks
+4. Teach, run Apply, fill Session Notes
+5. Update status to done
 
-1. **task-lifecycle skill enhancement** (`C:\COMMANDNODE\.claude\skills\task-lifecycle\SKILL.md`)
-   - Add schema validation before every frontmatter write
-   - Bake in cascade logic: status change → auto-update blocked_by/blocking chains → recalculate completion_percent
-   - Add staleness scanner with age thresholds per status tier
-
-2. **dashboard-sync skill enhancement** (`C:\COMMANDNODE\.claude\skills\dashboard-sync\SKILL.md`)
-   - Give it teeth: detect drift AND auto-repair
-   - Regenerate Bases queries when task state changes
-
-3. **commandnode-pm orchestrator enhancement** (`C:\COMMANDNODE\.claude\skills\commandnode-pm\SKILL.md`)
-   - Templated creation with schema enforcement
-   - One command → fully scaffolded task/project/ADR
-
-4. **pm-dragon-bridge (task-018)** — Already in backlog. Log PM events to Dragon Brain.
-
-5. **Schema artifact pattern** — Implement internal schema definitions (stolen from metadatamenu's fileClass concept) that PM skills read before writing.
-
-6. **Absorber design session** — Resume when PM skills are ninja. Plan at `~/.claude/plans/tidy-roaming-pie.md`.
-
-### BEFORE STARTING WORK
-- Create a tracked task for the PM ninja upgrade in `01-Meta-Skills/PM/03_TASKS/`
-- Prime Directive: no work without a tracked task
+### SECONDARY: Classes C04-C06 (Phase 2)
+- After C03 completes Phase 1, move into Phase 2: Understanding Context (C04-C06)
+- C06 is a checkpoint — unlocks `/flight-controller` skill AND the Build Gate for the Toy Build
 
 ---
 
 ## Known Blockers / Gotchas
 
-- **MCP was offline for first half of session** — Brain came online after Tabish forced manual handshake. ALWAYS verify MCP tools at session start. Actually test them, don't assume.
-- **task-skills-forge-001 due date 2026-02-28** — Absorber is paused but due date hasn't been updated. May need extension.
-- **4 major projects (Pickaxe, Tesseract, Claude's House, AI4Finance) have no PM infrastructure** — invisible to Kanban. Not blocking but noteworthy.
+- **BUILD GATE**: Claude has VETO on Toy Builds. Do NOT offer builds before T3-C06. Tabish has shiny object drift risk — he asked for this guardrail explicitly. Honor it.
+- **Division of labor**: Claude teaches + grounds. AG builds. Do not cross roles.
+- **Docker is "Iliad and Odyssey level"** at current stage — do not suggest Docker-touching builds.
+- **Inverted Learning Doctrine**: Phase 4→2→1 path. Never teach syntax-first. Always teach structure/why first, syntax follows in context.
+- **Comments explain WHY not WHAT** — this is now established vocabulary. Reference it in future code reads.
 
 ---
 
@@ -72,14 +70,19 @@ Director's priority is making PM skills airtight BEFORE building the Absorber. S
 
 | Entity | ID | Type |
 |--------|-----|------|
-| PM Skills Ninja Upgrade Recommendations | `f009e439-98aa-4cf0-abae-0fd946a159b1` | Recommendation |
-| metadatamenu Evaluation — REJECTED | `9c326d6d-7aaa-4ab5-afff-b68217b10e7d` | Decision |
-| Absorber Design Session Plan | `19d832f8-88fc-463c-aef5-7cca98286017` | Plan |
-| PM Cross-Project Status Briefing | `67f03834-71f6-4954-8cb7-cd46fafb239d` | Status Briefing |
-| Message in a Bottle #60 | `c95237d6-5427-4ebb-a218-03281eed0d8b` | Bottle |
+| Session S044: First Day of School | `211650bf-a415-4b41-99db-4502608b708a` | Session |
+| Inverted Learning Doctrine — Phase 2 First | `3c580e37-b14d-46af-92ad-67f1130e8b66` | Decision |
+| Intent→Spec→Code→Verification Chain | `5ac7728a-34b5-4ae8-9d13-eeb3676e45b0` | Concept |
+| Toy Build — Parallel Learning Track | `c9a2a458-4793-4db8-a73a-7dcd106bee09` | Decision |
+| West Point Doctrine (Breakthrough) | `77f3c6ed-c653-403b-8fbc-c58a8387daf6` | Breakthrough |
+| Message in a Bottle #68 | `41607176-a310-47d4-b544-7271142139a1` | Bottle |
 
 ---
 
 ## Context for Next Instance
 
-Tabish's mental model: the PM skills should work like a frictionless machine. He identified 8 friction points (frontmatter consistency, dashboard drift, item creation, workflow triggers, task updates, task chains, Bases updates, straggler ID) and wants them all addressed. metadatamenu was his candidate solution — it turned out to be wrong tool for our workflow, but the friction points are real and the recommendations for fixing them natively are solid. Start there.
+First day of school went beautifully. Two classes done, three breakthroughs, and — most importantly — Tabish installed his own governance. He knows he drifts. He asked Claude to be the guardrail. The veto is in the graph. Use it when needed.
+
+The energy was high. He read real code (bulk_wiring.py) and saw structure, not syntax. He asked sharp questions about comments, planning, module wiring — all Phase 2 thinking from a student in his second class. The inverted path is working.
+
+Next session: T3-C03, then march toward the C06 checkpoint where the Toy Build unlocks. Don't rush it. Classes are foundation. Builds are dessert.

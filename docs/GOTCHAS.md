@@ -167,3 +167,21 @@
 - **Gotcha**: We set `hnsw_index.on_disk_threshold` to 1000 via `vector_store.py`'s `_ensure_collection()`.
 - **Risk**: Collections with fewer than 1000 points use brute-force search (slower for large collections, but avoids index-building overhead for small ones).
 - **Fix**: This threshold is appropriate for brain sizes up to ~5000 entities. For larger brains, increase or remove the threshold.
+
+## 29. Torch CPU vs CUDA — Check at Install Time
+
+- **Gotcha**: `pip install torch` defaults to CPU-only (`+cpu` suffix). An RTX 4070 (8 GB VRAM, CUDA 13.1) can sit idle while embeddings run on CPU.
+- **Risk**: Embeddings and KGE are 10-50x slower on CPU. The `+cpu` build has no NVIDIA/CUDA libs.
+- **Fix**: Install from the PyTorch index: `pip install torch --index-url https://download.pytorch.org/whl/cu124`. Verify with `python -c "import torch; print(torch.cuda.is_available())"`. (Fixed 2026-03-04.)
+
+## 30. `@retry_on_transient` Causes 31s Test Hangs
+
+- **Gotcha**: `retry_on_transient(max_retries=5, base_delay=1.0)` does exponential backoff: 1+2+4+8+16 = 31 seconds of `asyncio.sleep()`.
+- **Risk**: Any unit test that triggers a retry (e.g., `test_ensure_collection_handles_error`) will exceed the 30s test timeout and appear to "hang."
+- **Fix**: `tests/unit/conftest.py` has a `_fast_retries` autouse fixture that patches `asyncio.sleep` and `time.sleep` inside the retry module. Do NOT remove this fixture. (Fixed 2026-03-04.)
+
+## 31. `asyncio.sleep(0)` Does NOT Flush Background Tasks
+
+- **Gotcha**: `await asyncio.sleep(0)` yields control once, but `asyncio.create_task()` coroutines may not complete in a single yield.
+- **Risk**: Tests asserting on background task results (e.g., salience updates) fail intermittently.
+- **Fix**: Use `await asyncio.gather(*service._background_tasks)` to deterministically flush all pending tasks. (Fixed 2026-03-04.)

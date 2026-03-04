@@ -246,13 +246,42 @@ The system at Phase 3 completion had:
 
 ---
 
+## Environment Maintenance (`2026-03-04`)
+
+### Dependency Audit & Fixes
+
+| Before                                 | After                                                                    |
+| -------------------------------------- | ------------------------------------------------------------------------ |
+| `pydantic-core 2.42.0` (incompatible)  | **`2.41.5`** — fixed fatal import crash                                  |
+| `protobuf 7.34.0` (7 conflicts)        | **`6.33.5`** — fixed Streamlit + Gemini API compat                       |
+| PyPI `claude-memory-mcp 0.3.0` (stale) | **Editable install** of local project (`0.1.0`) — fixed 47 import errors |
+| `torch 2.7.1+cpu` (no CUDA)            | **`torch 2.7.1+cu124`** — GPU acceleration restored                      |
+
+### Async Test Fix (289 Tests Unblocked)
+
+| Before                                     | After                                                        |
+| ------------------------------------------ | ------------------------------------------------------------ |
+| 289 async tests hang on Windows            | **788 all pass** in 54s                                      |
+| `ProactorEventLoop` teardown hang          | **`WindowsSelectorEventLoopPolicy`** in conftest             |
+| `@retry_on_transient` 31s backoff in tests | **`_fast_retries`** autouse fixture patches `asyncio.sleep`  |
+| `asyncio.sleep(0)` unreliable flush        | **`asyncio.gather(*_background_tasks)`** deterministic flush |
+
+### Bloat Removal
+
+| Category                     | Size Freed |
+| ---------------------------- | ---------- |
+| CPU torch (replaced by CUDA) | ~2.3 GB    |
+| Stale PyPI package           | ~1 MB      |
+
+---
+
 ## Cumulative Summary
 
 | Metric                | Phase 3 (Baseline) | Current (V2)                                       | Delta |
 | --------------------- | ------------------ | -------------------------------------------------- | ----- |
 | **MCP Tools**         | 17                 | 29                                                 | +12   |
 | **Source Modules**    | 14                 | 29                                                 | +15   |
-| **Unit Tests**        | 255                | 784                                                | +529  |
+| **Unit Tests**        | 255                | 788                                                | +533  |
 | **Test Files**        | 15                 | 55                                                 | +40   |
 | **Scripts**           | 12                 | 42                                                 | +30   |
 | **Tox Tiers**         | 4                  | 5                                                  | +1    |
