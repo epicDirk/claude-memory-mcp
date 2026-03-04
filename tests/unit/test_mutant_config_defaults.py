@@ -312,9 +312,8 @@ class TestRetryDecorator:
             call_count += 1
             raise ConnectionError("fail")
 
-        with patch("claude_memory.retry.time.sleep"):  # skip actual sleeping
-            with pytest.raises(ConnectionError):
-                always_fail()
+        with pytest.raises(ConnectionError):
+            always_fail()
         assert call_count == 6  # 1 initial + 5 retries
 
     def test_decorator_evil_custom_max_retries(self) -> None:
@@ -327,9 +326,8 @@ class TestRetryDecorator:
             call_count += 1
             raise ConnectionError("fail")
 
-        with patch("claude_memory.retry.time.sleep"):
-            with pytest.raises(ConnectionError):
-                always_fail()
+        with pytest.raises(ConnectionError):
+            always_fail()
         assert call_count == 3
 
     def test_decorator_evil_only_catches_transient(self) -> None:
@@ -358,8 +356,7 @@ class TestRetryDecorator:
                 raise ConnectionError("transient")
             return "ok"
 
-        with patch("claude_memory.retry.time.sleep"):
-            result = eventual_success()
+        result = eventual_success()
         assert result == "ok"
         assert call_count == 3
 

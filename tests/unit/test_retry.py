@@ -102,9 +102,11 @@ class TestRetryOnTransientSync:
                 raise ConnectionError("fail")
             return "ok"
 
-        with patch("time.sleep") as mock_sleep:
+        with patch("claude_memory.retry.time.sleep") as mock_sleep:
             result = fn()
             assert result == "ok"
+            # Guard: ensure sleep was actually called (prevent vacuous pass)
+            assert mock_sleep.call_args_list, "retry sleep was never called"
             # Verify delays are capped at 2.0
             for call in mock_sleep.call_args_list:
                 assert call[0][0] <= 2.0
