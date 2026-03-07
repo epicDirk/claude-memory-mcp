@@ -1,6 +1,6 @@
 # Maintenance Manual
 
-Guidelines for keeping the Exocortex healthy and performant. Last updated: March 2, 2026.
+Guidelines for keeping the Exocortex healthy and performant. Last updated: March 7, 2026.
 
 ## 🧹 The Librarian Agent
 
@@ -22,7 +22,7 @@ Currently triggered manually via `run_librarian_cycle`.
 
 ### Automated Daily Backup (Active)
 
-A Windows Task Scheduler task (`ExocortexBackup`) runs daily at 3:00 AM:
+A Windows Task Scheduler task (`ExocortexBackup`) runs daily at 11:00 PM:
 
 1. Creates a local snapshot in `backups/daily_YYYY_MM_DD/`
 2. Syncs to **Google Drive** (`G:\My Drive\exocortex_backups\`)
@@ -135,10 +135,10 @@ The system uses Redis-based locking (or File-based fallback).
 
 Registered by `scripts/setup_scheduled_tasks.ps1` (idempotent, run as admin):
 
-| Task                   | Schedule         | Action                |
-| ---------------------- | ---------------- | --------------------- |
-| `ExocortexBackup`      | Daily at 3:00 AM | `scheduled_backup.py` |
-| `ExocortexHealthCheck` | Every 15 minutes | `healthcheck.ps1`     |
+| Task                   | Schedule          | Action                |
+| ---------------------- | ----------------- | --------------------- |
+| `ExocortexBackup`      | Daily at 11:00 PM | `scheduled_backup.py` |
+| `ExocortexHealthCheck` | Every 15 minutes  | `healthcheck.ps1`     |
 
 ## 🔒 Strict Consistency (W3)
 

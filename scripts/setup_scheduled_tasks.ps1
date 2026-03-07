@@ -2,7 +2,7 @@
 # Must be run as Administrator.
 #
 # Creates two Windows Task Scheduler jobs:
-#   1. ExocortexBackup      — daily at 3:00 AM (runs scheduled_backup.py)
+#   1. ExocortexBackup      — daily at 11:00 PM (runs scheduled_backup.py)
 #   2. ExocortexHealthCheck  — every 15 minutes (runs healthcheck.ps1)
 
 param(
@@ -30,7 +30,7 @@ function Register-ExocortexTask {
         [string]$Description,
         [string]$Command,
         [string]$Arguments,
-        [string]$TriggerSpec  # "daily_3am" or "every_15min"
+        [string]$TriggerSpec  # "daily_11pm" or "every_15min"
     )
 
     $existing = schtasks /query /tn $TaskName 2>$null
@@ -44,12 +44,12 @@ function Register-ExocortexTask {
         schtasks /delete /tn $TaskName /f | Out-Null
     }
 
-    if ($TriggerSpec -eq "daily_3am") {
+    if ($TriggerSpec -eq "daily_11pm") {
         schtasks /create `
             /tn $TaskName `
             /tr "$Command $Arguments" `
             /sc DAILY `
-            /st 03:00 `
+            /st 23:00 `
             /rl HIGHEST `
             /f
     } elseif ($TriggerSpec -eq "every_15min") {
@@ -76,7 +76,7 @@ Register-ExocortexTask `
     -Description "Daily backup of Exocortex brain data (FalkorDB + Qdrant)" `
     -Command $PythonExe `
     -Arguments "$ScriptDir\scheduled_backup.py" `
-    -TriggerSpec "daily_3am"
+    -TriggerSpec "daily_11pm"
 
 # ── Task 2: Health Check every 15 min (W5) ───────────────────────────────────
 

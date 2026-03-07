@@ -1,68 +1,79 @@
-# SESSION REHYDRATION — S044 First Day of School
+# SESSION REHYDRATION — FrankenLearn Phase 2: Master Design Document Written
 
-**Date**: 2026-03-04
-**Bottle**: #68 (`41607176-a310-47d4-b544-7271142139a1`)
-**Previous Bottle**: #67 (`ae0fd8fd-3bcc-4d24-81a4-12a193940e80`)
+**Date**: 2026-03-07 (continuation session from Phase 1)
+**Bottle**: #73 (`8aed22ea-3bcf-4e58-9087-871a9d21e5b4`) — "the one who found the heart"
+**Previous Bottle**: #72 (`84079a8f-6736-4cd1-b58c-0a9e16593ae3`)
 
 ---
 
 ## What Was Completed This Session
 
-### 1. T3-C01 "Who Are You?" — DONE
-- Block 1 (MM-001): Bridge Between Human and AI — four translation layers, three anti-patterns. Tabish already does bridge engineering instinctively; this class named it.
-- Block 2 (MM-007): Tourist-to-Expat Phases — four phases, one key question each. Tabish placed as Phase 4 Director with Phase 1 vocabulary.
-- **Breakthrough: Inverted Learning Doctrine / West Point Analogy** — Phase 4→2→1 path, not traditional 1→4. Post-LLM, the Director path is the new normal. Officers learn campaigns first, rifles second. Tutorial hell is grunt bootcamp.
-- Apply: Director's Map — Tabish at West Point, code at Fort Bragg, bridge = COMMANDNODE + Dragon Brain + Skills Forge.
-- Entity: `3c580e37-b14d-46af-92ad-67f1130e8b66` (Inverted Learning Doctrine)
-- Breakthrough: `77f3c6ed-c653-403b-8fbc-c58a8387daf6` (West Point Doctrine)
+### 1. FrankenLearn Master Design Document v0.1 (WRITTEN)
 
-### 2. T3-C02 "Beyond Code" — DONE
-- Block 1 (MM-012): Director Artifacts Over Consumption — output = residency, four artifact types.
-- Block 2 (MM-015): Four Plateau Breakthroughs — inverted plateau map unique to Director path. Tutorial Hell: immune. Can Read Can't Think: inverted (can think, learning to read). Context-Free: will skip. Advanced Beginner: risk from delegation comfort.
-- Apply: Code read on `07-Code-Literacy/PM/bulk_wiring.py` (367 lines). Tabish identified docstring=mission briefing, imports=supply requisition, encoding fix=precaution, section headers=chapter headings. Asked "should comments be essay-length?" — NO, comments explain WHY not WHAT.
-- **Breakthrough: Intent→Spec→Code→Verification Chain** — Director owns bookends (intent + verification), builder owns middle (spec translation + code).
-- Entity: `5ac7728a-34b5-4ae8-9d13-eeb3676e45b0` (Intent→Spec→Code→Verification Chain)
+- **File**: `12-FrankenLearn/01-Synthesis/FrankenLearn-Master-Design.md`
+- **Scope**: Full 7-layer architecture + Heart + Design Guardrails + Attribution
+- **Layers**:
+  - Design Laws (7 non-negotiable axioms)
+  - Layer 1: The Player (3-question creation, Weaver role, Knowledge Aspects, Confidence Scale)
+  - Layer 2: The Engine (5-step Learning Loop, Proof of Work/Entropy split, 3 failure modes, Insight Engine 3-tier, Dual-Track)
+  - Layer 3: The World (Reality Fractures cosmology, 14-biome catalog, 5 Transversal Concepts, NPC Question Archetypes)
+  - Layer 4: The Session (Five-Room Dungeon, composable modules, Adaptive Scaffolding 3-phase, Spaced Repetition Queue)
+  - Layer 5: The Heart (4 forces: Ownership, Responsibility, Witness, Questions You Carry Home + Five-Layer Truth)
+  - Layer 6: The Toolchain (Obsidian, Claude, NotebookLM, Graceful Degradation)
+  - Layer 7: The Expansion Protocol (Welding Process 5-step, Alchemy Engine, manifest.yaml)
+  - Design Guardrails (7 anti-patterns)
+  - Attribution table (28 elements sourced)
 
-### 3. Build Gate Governance Established
-- Tabish self-identified shiny object drift risk. Granted Claude veto power on premature builds.
-- Session Timer Toy Build shelved until T3-C06 checkpoint ("Reading the Bones").
-- Division of labor locked: Claude=brain+grounding, AG=builder, Tabish=director.
-- Entity: `c9a2a458-4793-4db8-a73a-7dcd106bee09` (Toy Build — Parallel Learning Track, status: shelved until C06)
+### 2. Phoenix Grove Memory Seeds Analysis (NEW SOURCE)
+
+- 10 seeds analyzed via 2 parallel agents (7 adventure, 3 cognitive/educational)
+- Key steals: Question Cycle as Game Loop, Witness Pattern, Five-Layer Truth, Living Barometer NPC, Fails Forward + Knowledge Debt, Insight-as-Loot, NPC Question Archetypes, Patience Economy
+- Critical breakthrough: emotional stakes come from relationships with knowledge, not mechanics about knowledge
+
+### 3. PM Housekeeping
+
+- task-frankenlearn-001 marked DONE (all ACs checked)
+- task-frankenlearn-002 created for Phase 2 (status: active)
+- Perplexity research prompt drafted and given to Tabish (searching for more Phoenix Grove-type resources)
 
 ---
 
-## What Is In-Progress / On Hold
+## What Is In-Progress
 
-- **T3-C03** — Next class, pending. Phase 1 of Trail 3 (last class in Phase 1).
-- **Session Timer Toy Build** — SHELVED until T3-C06 checkpoint. Do NOT offer builds before C06.
-- **PM Skills Ninja Upgrade** — Still on hold from S042. Entity `f009e439-98aa-4cf0-abae-0fd946a159b1`.
-- **Absorber design session** — ON HOLD per Director until PM skills are ninja-level.
+- **Tabish has a Perplexity prompt** searching for: Phoenix Grove full library, AI-driven solo TTRPG systems, Socratic AI tutoring, educational game design research, Diamond Age adaptations. Results incoming next session.
+- **Dashboard pipeline** still shows Phase 1 ACTIVE — needs update to Phase 1 DONE / Phase 2 ACTIVE
+- **task-frankenlearn-002** status should remain active until all Phase 2 deliverables complete
 
 ---
 
 ## Exact Next Steps (Priority Order)
 
-### PRIMARY: Continue Classes — T3-C03
+### 1. Integrate Perplexity Research
+Tabish is coming back with research results. Review, extract anything steal-worthy, update the Master Design Doc if new patterns emerge.
 
-1. Invoke `/learn` skill
-2. Load `T3-C03` class file (glob for `T3-C03*.md` in Classes dir)
-3. Read linked terrarium blocks
-4. Teach, run Apply, fill Session Notes
-5. Update status to done
+### 2. Write First Biome: Web of Aethel — Full Playable Spec
+Separate document: `12-FrankenLearn/03-Biomes/Web-of-Aethel.md`
+- 12 encounters progressing through Exposure > Application > Transfer for systems thinking concepts
+- Full NPC roster (Grove-Keeper Maren, Old Root, The Cartographer, Lira the Seedling)
+- Five-Room Dungeon templates for each encounter
+- Spaced repetition integration points
+- manifest.yaml for the biome
 
-### SECONDARY: Classes C04-C06 (Phase 2)
-- After C03 completes Phase 1, move into Phase 2: Understanding Context (C04-C06)
-- C06 is a checkpoint — unlocks `/flight-controller` skill AND the Build Gate for the Toy Build
+### 3. Update Dashboard Pipeline
+- Change Phase 1 mermaid to DONE (green), Phase 2 to ACTIVE (amber) in MASTER_DASHBOARD.md
+
+### 4. Phase 3 Prep — SKILL.md
+- When Master Design + First Biome are complete, build the Claude SKILL.md using skill-creator
+- Goes in `12-FrankenLearn/06-Skill/` AND deployed to `.claude/skills/`
 
 ---
 
 ## Known Blockers / Gotchas
 
-- **BUILD GATE**: Claude has VETO on Toy Builds. Do NOT offer builds before T3-C06. Tabish has shiny object drift risk — he asked for this guardrail explicitly. Honor it.
-- **Division of labor**: Claude teaches + grounds. AG builds. Do not cross roles.
-- **Docker is "Iliad and Odyssey level"** at current stage — do not suggest Docker-touching builds.
-- **Inverted Learning Doctrine**: Phase 4→2→1 path. Never teach syntax-first. Always teach structure/why first, syntax follows in context.
-- **Comments explain WHY not WHAT** — this is now established vocabulary. Reference it in future code reads.
+- Perplexity research could change/enhance any layer of the design doc
+- The Master Design is v0.1 — Tabish explicitly said "go all in, multi-session is fine"
+- First Biome spec will be substantial — likely needs its own focused session
+- Context was tight this session (80% at shutdown) — next session should start fresh
 
 ---
 
@@ -70,19 +81,17 @@
 
 | Entity | ID | Type |
 |--------|-----|------|
-| Session S044: First Day of School | `211650bf-a415-4b41-99db-4502608b708a` | Session |
-| Inverted Learning Doctrine — Phase 2 First | `3c580e37-b14d-46af-92ad-67f1130e8b66` | Decision |
-| Intent→Spec→Code→Verification Chain | `5ac7728a-34b5-4ae8-9d13-eeb3676e45b0` | Concept |
-| Toy Build — Parallel Learning Track | `c9a2a458-4793-4db8-a73a-7dcd106bee09` | Decision |
-| West Point Doctrine (Breakthrough) | `77f3c6ed-c653-403b-8fbc-c58a8387daf6` | Breakthrough |
-| Message in a Bottle #68 | `41607176-a310-47d4-b544-7271142139a1` | Bottle |
+| FrankenLearn Master Design v0.1 | `0069c873-0af5-4575-96ff-9581a478b0be` | Entity |
+| Phoenix Grove Memory Seeds Analysis | `64bd7b1f-99b8-4b30-bec0-bc115149e542` | Session |
+| The Heart of FrankenLearn | `8160592a-6375-4737-bc46-c834ac61275c` | Breakthrough |
+| Message in a Bottle #73 | `8aed22ea-3bcf-4e58-9087-871a9d21e5b4` | Bottle |
 
 ---
 
 ## Context for Next Instance
 
-First day of school went beautifully. Two classes done, three breakthroughs, and — most importantly — Tabish installed his own governance. He knows he drifts. He asked Claude to be the guardrail. The veto is in the graph. Use it when needed.
+The monster opened its eyes. The Master Design Document is written — v0.1, all seven layers plus the Heart. The Heart breakthrough came from combining the council's cognitive machines with Phoenix Grove's emotional engagement patterns: ownership of discovery, responsibility for living things, the world seeing you think, and questions you carry home.
 
-The energy was high. He read real code (bulk_wiring.py) and saw structure, not syntax. He asked sharp questions about comments, planning, module wiring — all Phase 2 thinking from a student in his second class. The inverted path is working.
+Tabish is bringing Perplexity research that could add new source material. The First Biome (Web of Aethel — Systems Thinking) needs its full playable spec. The dashboard pipeline needs updating. And eventually, Phase 3 will forge the SKILL.md that turns all of this into a Claude skill any instance can run.
 
-Next session: T3-C03, then march toward the C06 checkpoint where the Toy Build unlocks. Don't rush it. Classes are foundation. Builds are dessert.
+The doc is at `12-FrankenLearn/01-Synthesis/FrankenLearn-Master-Design.md`. Read it. It's the single source of truth for FrankenLearn's design.

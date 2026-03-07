@@ -1,6 +1,6 @@
 # User Manual: The Exocortex
 
-This manual describes how to interact with the Claude Memory System. Last updated: March 2, 2026.
+This manual describes how to interact with the Claude Memory System. Last updated: March 7, 2026.
 
 ## 🤖 For Claude (MCP Tools — 29 Total)
 
@@ -103,7 +103,7 @@ Access the Streamlit UI at `http://localhost:8501`.
 
 ### Automated (Active)
 
-Daily at 3:00 AM → Google Drive (`G:\My Drive\exocortex_backups\`).
+Daily at 11:00 PM → Google Drive (`G:\My Drive\exocortex_backups\`).
 Rolling 7-day window. No action required.
 
 ### Manual

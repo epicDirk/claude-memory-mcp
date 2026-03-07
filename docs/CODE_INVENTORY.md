@@ -1,6 +1,6 @@
 # Code Inventory
 
-A manifest of the project structure. Last updated: March 2, 2026.
+A manifest of the project structure. Last updated: March 7, 2026.
 
 ## Core Logic (`src/claude_memory/`)
 
@@ -115,15 +115,18 @@ A manifest of the project structure. Last updated: March 2, 2026.
 
 ## Configuration
 
-| File                      | Purpose                                                                   |
-| ------------------------- | ------------------------------------------------------------------------- |
-| `pyproject.toml`          | Dependencies, Build System, Tool Config (Ruff, Mypy, Pytest).             |
-| `tox.ini`                 | **CI/CD Tiers**: pulse, gate, forge, hammer, polish (5 tiers).            |
-| `Dockerfile`              | Multi-stage build definition.                                             |
-| `docker-compose.yml`      | Orchestration for DB + Embedding + Dashboard (all ports localhost-bound). |
-| `.dockerignore`           | Excludes caches/backups from build context (~50 MB vs 1.6 GB).            |
-| `.pre-commit-config.yaml` | Pre-commit hooks config.                                                  |
-| `mcp_config.json`         | **Local Config**. Arguments for `claude mcp run`.                         |
+| File                       | Purpose                                                                                                 |
+| -------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `pyproject.toml`           | Dependencies, Build System, Tool Config (Ruff, Mypy, Pytest).                                           |
+| `tox.ini`                  | **CI/CD Tiers**: pulse, gate, forge, hammer, polish (5 tiers).                                          |
+| `Dockerfile`               | Multi-stage build definition.                                                                           |
+| `docker-compose.yml`       | Orchestration for DB + Embedding + Dashboard (all ports localhost-bound).                               |
+| `.dockerignore`            | Excludes caches/backups from build context (~50 MB vs 1.6 GB).                                          |
+| `.pre-commit-config.yaml`  | Pre-commit hooks config.                                                                                |
+| `mcp_config.json`          | **Local Config**. Arguments for `claude mcp run`.                                                       |
+| `ontology.json`            | **Runtime Ontology**. 15 node type definitions (Entity, Concept, Bottle, etc.) loaded by `ontology.py`. |
+| `.secrets.baseline`        | **Security**. `detect-secrets` baseline for credential scan (Hammer tier).                              |
+| `.github/workflows/ci.yml` | **CI Pipeline**. GitHub Actions workflow (placeholder).                                                 |
 
 ## Operations & Scripts (`scripts/`)
 
@@ -145,6 +148,7 @@ A manifest of the project structure. Last updated: March 2, 2026.
 | **Verification**            |                                                                                                                                               |
 | `red_team.py`               | **Chaos Testing**. Fuzzing, Concurrency, and Cycle detection.                                                                                 |
 | `e2e_test.py`               | **Legacy E2E**. 14-check lifecycle against running stack (CRUD, search, sessions, graph traversal).                                           |
+| `mcp_smoke_test.py`         | **MCP Smoke Test**. 5-pipeline verification (bottles, search, health, diagnostics, reconnect) against live Docker stack.                      |
 | `verify_mcp_server.py`      | **Protocol Test**. Simulates an MCP Client (JSON-RPC) to verify tools.                                                                        |
 | `final_check.py`            | **E2E Verification**. The "Golden Master" test for system health.                                                                             |
 | `verify.py`                 | **Quick Verify**. Lightweight verification script.                                                                                            |
@@ -159,6 +163,8 @@ A manifest of the project structure. Last updated: March 2, 2026.
 | `debug_tar.py`              | **Diagnostic**. Tests tar archive operations.                                                                                                 |
 | **Evaluation**              |                                                                                                                                               |
 | `embedding_eval.py`         | **Benchmark**. 3-stage embedding model evaluation harness (export/bench/report).                                                              |
+| `eval_dataset.json`         | **Eval Data**. Ground-truth dataset used by `embedding_eval.py`.                                                                              |
+| `eval_results.json`         | **Eval Output**. Results from the latest embedding evaluation run.                                                                            |
 | **Migration**               |                                                                                                                                               |
 | `backfill_temporal.py`      | **Migration**. Backfills `occurred_at` and `PRECEDED_BY` edges.                                                                               |
 | `migrate_vectors.py`        | **Migration**. Migrates vectors between collections.                                                                                          |
@@ -177,3 +183,13 @@ A manifest of the project structure. Last updated: March 2, 2026.
 | `embed_observations.py`     | **Backfill**. Embeds existing observation content into Qdrant (E-3 retroactive). Idempotent, `--dry-run` support.                             |
 | `validate_brain.py`         | **Health Check**. 9-check live brain validator (split-brain, bottle chain, temporal, obs vectors, maxmemory, ghosts, orphans, indices, HNSW). |
 | `purge_ghost_vectors.py`    | **Repair**. Removes orphan Qdrant vectors with no matching graph entity.                                                                      |
+
+## Root-Level Repair Utilities
+
+One-off scripts created during incident response. Kept in project root (not `scripts/`) as historical artifacts.
+
+| File                  | Purpose                                                                                                        |
+| --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `delete_phantom.py`   | **Phantom Cleanup**. Safely deletes the orphan `memory_graph` FalkorDB graph while preserving `claude_memory`. |
+| `diagnostic_check.py` | **S042 Diagnostic**. Identifies 23 graph-only entities (in FalkorDB but missing from Qdrant) and audits edges. |
+| `fix_split_brain.py`  | **Split-Brain Repair**. Vectorizes 23 FalkorDB-only entities into Qdrant to restore graph↔vector consistency.  |

@@ -1,6 +1,6 @@
 # Documentation Index
 
-> **Last updated**: March 5, 2026 — Post /simplify diagnostic campaign
+> **Last updated**: March 7, 2026 — Backup schedule change + documentation gap audit
 
 This is the master table of contents for all Claude Memory MCP documentation. Use this to find the right doc, and to know **when each doc needs updating**.
 

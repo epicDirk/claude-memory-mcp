@@ -172,7 +172,7 @@ The system at Phase 3 completion had:
 
 | Before              | After                                                      |
 | ------------------- | ---------------------------------------------------------- |
-| No scheduled backup | **`ExocortexBackup`** task at 3:00 AM daily                |
+| No scheduled backup | **`ExocortexBackup`** task at 11:00 PM daily               |
 | Backup untested     | **Live tested**: 858 KB + 4773 KB, Google Drive synced     |
 | Restore untested    | **Restore verified**: 695 nodes intact, containers healthy |
 | No live e2e test    | **`scripts/e2e_test.py`** — 14-check lifecycle (`c4ddb52`) |

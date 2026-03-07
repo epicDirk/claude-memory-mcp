@@ -118,7 +118,7 @@ All ports are bound to `127.0.0.1` — no external access.
 
 ## Backup Architecture
 
-- **Automated**: Windows Task Scheduler (`ExocortexBackup`) runs daily at 3 AM.
+- **Automated**: Windows Task Scheduler (`ExocortexBackup`) runs daily at 11 PM.
 - **Storage**: Local (`backups/`) + Google Drive (`G:\My Drive\exocortex_backups\`).
 - **Retention**: Rolling 7-day window — both local and cloud copies.
 - **Script**: `scripts/scheduled_backup.py`.
