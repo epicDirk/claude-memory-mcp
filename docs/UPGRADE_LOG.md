@@ -279,16 +279,14 @@ The system at Phase 3 completion had:
 
 | Metric                | Phase 3 (Baseline) | Current (V2)                                       | Delta |
 | --------------------- | ------------------ | -------------------------------------------------- | ----- |
-| **MCP Tools**         | 17                 | 29                                                 | +12   |
-| **Source Modules**    | 14                 | 29                                                 | +15   |
-| **Unit Tests**        | 255                | 788                                                | +533  |
-| **Test Files**        | 15                 | 55                                                 | +40   |
-| **Scripts**           | 12                 | 42                                                 | +30   |
-| **Tox Tiers**         | 4                  | 5                                                  | +1    |
+| **MCP Tools**         | 17                 | 30 (19 decorator + 11 runtime)                     | +13   |
+| **Source Modules**    | 14                 | 28                                                 | +14   |
+| **Unit Tests**        | 255                | 784                                                | +529  |
+| **Test Files**        | 15                 | 60                                                 | +45   |
+| **Scripts**           | 12                 | 39 (32 py + 7 ps1)                                 | +27   |
+| **Tox Tiers**         | 4                  | 4 (pulse/gate/hammer/polish)                       | 0     |
 | **Search Strategies** | 1 (vector)         | 4 (semantic, associative, temporal, relational)    | +3    |
 | **Graph Features**    | Basic CRUD         | Temporal edges, salience, activation, gap analysis | —     |
-| **Graph Data**        | —                  | 700 nodes, 1253 edges                              | —     |
-| **E2E Phases**        | —                  | 31 phases, 74 checks                               | —     |
 
 ### New Source Modules (V2)
 

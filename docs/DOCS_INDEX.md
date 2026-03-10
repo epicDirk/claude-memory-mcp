@@ -1,6 +1,6 @@
 # Documentation Index
 
-> **Last updated**: March 9, 2026 — Embedding backfill, purge_ghost_vectors graph cross-reference, doc consolidation
+> **Last updated**: March 10, 2026 — Public release, backup fix, doc audit
 
 This is the master table of contents for all Claude Memory MCP documentation. Use this to find the right doc, and to know **when each doc needs updating**.
 
@@ -8,8 +8,8 @@ This is the master table of contents for all Claude Memory MCP documentation. Us
 
 | Metric                                | Value                        | As Of  |
 | ------------------------------------- | ---------------------------- | ------ |
-| Source modules (`src/claude_memory/`) | 27                           | Mar 9  |
-| Scripts (`scripts/`)                  | 40                           | Mar 9  |
+| Source modules (`src/claude_memory/`) | 28                           | Mar 10 |
+| Scripts (`scripts/`)                  | 39 (32 py + 7 ps1)           | Mar 10 |
 | Unit tests                            | 784 (+5 skipped)             | Mar 9  |
 | Test files                            | 60                           | Mar 9  |
 | Coverage                              | ~98%                         | Mar 2  |
