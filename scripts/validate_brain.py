@@ -77,7 +77,7 @@ def main() -> int:  # noqa: C901, PLR0912
     print("\n--- Check 1: Split-Brain ---")
     try:
         graph_result = redis.execute_command(
-            "GRAPH.QUERY", "claude_memory", "MATCH (n:Entity) RETURN n.id"
+            "GRAPH.QUERY", "claude_memory", "MATCH (n) WHERE n.id IS NOT NULL RETURN n.id"
         )
         # FalkorDB returns [[header], [rows], [stats]]
         rows = graph_result[1] if len(graph_result) > 1 else []

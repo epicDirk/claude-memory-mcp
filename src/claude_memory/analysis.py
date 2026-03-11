@@ -162,7 +162,7 @@ class AnalysisMixin(AnalysisMaintenanceMixin):
         return [self._build_gap_result(gap, cluster_map) for gap in gaps[: params.limit]]
 
     @staticmethod
-    def _build_gap_result(gap: Any, cluster_map: dict[str, Any]) -> dict[str, Any]:
+    def _build_gap_result(gap: Any, cluster_map: dict[int, Any]) -> dict[str, Any]:
         """Convert a single gap into a result dict with research prompt."""
         ca = cluster_map.get(gap.cluster_a_id)
         cb = cluster_map.get(gap.cluster_b_id)
