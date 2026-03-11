@@ -1,4 +1,4 @@
-# healthcheck.ps1 — Quick system health probe for Exocortex stack.
+# healthcheck.ps1 — Quick system health probe for Claude Memory stack.
 # Checks: FalkorDB ping, Qdrant health, Embedding server /health.
 # Exit 0 = all OK, Exit 1 = at least one service down.
 
@@ -107,7 +107,7 @@ if ($failed.Count -eq 0) {
     $telegramChatId = $env:EXOCORTEX_TELEGRAM_CHAT_ID
     if ($telegramToken -and $telegramChatId) {
         try {
-            $msg = "[Exocortex Health Alert] FAILING: $list"
+            $msg = "[Claude Memory Health Alert] FAILING: $list"
             $uri = "https://api.telegram.org/bot${telegramToken}/sendMessage"
             Invoke-RestMethod -Uri $uri -Method Post -Body @{
                 chat_id = $telegramChatId
@@ -126,9 +126,9 @@ if ($failed.Count -eq 0) {
             [Windows.UI.Notifications.ToastTemplateType]::ToastText02
         )
         $text = $template.GetElementsByTagName("text")
-        $text[0].AppendChild($template.CreateTextNode("Exocortex Health Alert")) | Out-Null
+        $text[0].AppendChild($template.CreateTextNode("Claude Memory Health Alert")) | Out-Null
         $text[1].AppendChild($template.CreateTextNode("FAILING: $list")) | Out-Null
-        $notifier = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("Exocortex")
+        $notifier = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("Claude Memory")
         $toast = [Windows.UI.Notifications.ToastNotification]::new($template)
         $notifier.Show($toast)
     } catch {

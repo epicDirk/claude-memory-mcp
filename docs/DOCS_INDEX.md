@@ -39,6 +39,7 @@ This is the master table of contents for all Claude Memory MCP documentation. Us
 | --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ---------------------- | ------------------------------------------------- |
 | **This file** (`DOCS_INDEX.md`)                                                                                                         | Master TOC and update guide                        | All maintainers        | Any doc is added/removed/renamed                  |
 | [ARCHITECTURE.md](ARCHITECTURE.md)                 | System design, data model, component diagram       | Developers, new agents | New components, data model changes, infra changes |
+| [SETUP.md](SETUP.md)                               | Comprehensive setup guide (agents + humans)        | Everyone               | Prerequisites, Docker, or config flow changes     |
 | [CODE_INVENTORY.md](CODE_INVENTORY.md)             | File-by-file manifest with descriptions            | Developers, auditors   | Any file added/removed/renamed                    |
 | [USER_MANUAL.md](USER_MANUAL.md)                   | How to use the 30 MCP tools with Claude            | End users              | New tools added, tool signatures change           |
 | [MCP_TOOL_REFERENCE.md](MCP_TOOL_REFERENCE.md)     | API reference: all 30 tools, params, return shapes | Developers, AI agents  | Tool added/removed, params change                 |

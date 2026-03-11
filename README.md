@@ -27,6 +27,8 @@ Claude is brilliant but forgets everything between conversations. Every new chat
 
 ## Quick Start
 
+> **Detailed setup**: See [docs/SETUP.md](docs/SETUP.md) for comprehensive instructions including prerequisites, platform-specific notes, and troubleshooting.
+
 ### 1. Start the Services
 
 ```bash
