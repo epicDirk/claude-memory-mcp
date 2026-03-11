@@ -19,13 +19,13 @@ async def seed() -> None:
     # Define initial entities
     entities = [
         EntityCreateParams(
-            name="Tabish",
+            name="TestUser",
             node_type="Person",
             project_id="meta",
             properties={
                 "role": "Director/Student",
                 "learning_style": "visual-spatial, analogy-driven",
-                "communication": "direct, profanity-friendly, intellectual sparring",
+                "communication": "direct, informal, intellectual sparring",
             },
             certainty="confirmed",
         ),

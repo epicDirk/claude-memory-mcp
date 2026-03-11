@@ -1,4 +1,5 @@
 import argparse
+import os
 import subprocess
 import sys
 import time
@@ -23,7 +24,11 @@ def run_command(cmd: list[str]) -> bool:
 def check_health() -> bool:
     print("Checking system health...")
     try:
-        client = FalkorDB(host="localhost", port=6379, password="***REMOVED***")
+        client = FalkorDB(
+            host=os.getenv("FALKORDB_HOST", "localhost"),
+            port=int(os.getenv("FALKORDB_PORT", "6379")),
+            password=os.getenv("FALKORDB_PASSWORD", ""),
+        )
         # Just select the graph implies connection check
         graph = client.select_graph("claude_memory")
         # Simple query to check responsiveness
@@ -40,9 +45,12 @@ def backup() -> bool:
     print(f"Starting backup for {CONTAINER_NAME}...")
 
     # 1. Trigger SAVE
-    if not run_command(
-        ["docker", "exec", CONTAINER_NAME, "redis-cli", "-a", "***REMOVED***", "SAVE"]
-    ):
+    password = os.getenv("FALKORDB_PASSWORD", "")
+    cmd = ["docker", "exec", CONTAINER_NAME, "redis-cli"]
+    if password:
+        cmd.extend(["-a", password])
+    cmd.append("SAVE")
+    if not run_command(cmd):
         return False
 
     # 2. Ensure backup dir exists

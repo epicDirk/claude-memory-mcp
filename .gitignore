@@ -129,3 +129,6 @@ scripts/eval_results.json
 delete_phantom.py
 diagnostic_check.py
 fix_split_brain.py
+
+# Real MCP config (use mcp_config.example.json as template)
+mcp_config.json

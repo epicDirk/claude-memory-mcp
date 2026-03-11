@@ -16,20 +16,20 @@ async def verify() -> None:
 
     # Test 1: Get Entity from Seed
     # Since we don't have direct get_by_name in service yet (only search), we use search
-    logger.info("Test 1: Search for 'Tabish'")
-    results = await service.search("Tabish", limit=1)
+    logger.info("Test 1: Search for 'TestUser'")
+    results = await service.search("TestUser", limit=1)
     if results:
         e = results[0]
         logger.info(f"✅ Found: {e.name} ({e.node_type}) - Score: {e.score}")
     else:
-        logger.error("❌ Test 1 Failed: Tabish not found")
+        logger.error("❌ Test 1 Failed: TestUser not found")
 
     # Test 2: Semantic Search (Hybrid)
     logger.info("Test 2: Semantic search for 'Director'")
     results = await service.search("someone who directs", limit=5)
-    found = any(r.name == "Tabish" for r in results)
+    found = any(r.name == "TestUser" for r in results)
     if found:
-        logger.info("✅ Semantic search working (found Tabish for 'someone who directs')")
+        logger.info("✅ Semantic search working (found TestUser for 'someone who directs')")
     else:
         logger.error("❌ Test 2 Failed: Semantic search didn't return expected results")
 

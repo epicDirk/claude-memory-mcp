@@ -32,7 +32,7 @@ chardet==5.2.0
 charset-normalizer==3.4.4
 chromadb==1.4.1
 # Editable Git install with no remote (claude-memory-mcp==0.1.0)
--e c:\users\asus\.gemini\antigravity\scratch\new_project\claude-memory-mcp
+-e .
 click==8.1.8
 click-option-group==0.5.9
 codespell==2.4.1

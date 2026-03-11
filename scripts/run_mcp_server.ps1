@@ -21,7 +21,16 @@ $ProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 if (-not $ProjectRoot) { $ProjectRoot = Split-Path -Parent $PSScriptRoot }
 
 # Resolve paths
-$PythonExe = "C:\Users\Asus\AppData\Local\Programs\Python\Python312\python.exe"
+# Resolve Python executable — prefer py launcher, then PATH, then common locations
+$PythonExe = $null
+if (Get-Command "py" -ErrorAction SilentlyContinue) {
+    $PythonExe = (Get-Command "py").Source
+} elseif (Get-Command "python" -ErrorAction SilentlyContinue) {
+    $PythonExe = (Get-Command "python").Source
+} else {
+    Write-Host "ERROR: Python not found. Install Python 3.12+ or add it to PATH."
+    exit 1
+}
 $SrcPath = Join-Path $ProjectRoot "src"
 $LogDir = Join-Path $ProjectRoot "logs"
 $LogFile = Join-Path $LogDir "mcp_server_restarts.log"
