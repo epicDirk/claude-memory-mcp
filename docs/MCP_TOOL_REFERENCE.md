@@ -1,6 +1,6 @@
 # MCP Tool Reference
 
-Complete reference for the **29 MCP tools** exposed by the Claude Memory system.
+Complete reference for the **31 MCP tools** exposed by the Claude Memory system.
 
 ---
 
@@ -103,20 +103,24 @@ Add an observation (fact, note) linked to an entity.
 
 ### `search_memory`
 
-Search for entities using vector similarity. Supports strategy routing.
+Search for entities using vector similarity. Supports strategy routing and hybrid search (ADR-007).
 
-| Param        | Type   | Default  |
-| ------------ | ------ | -------- |
-| `query`      | `str`  | required |
-| `project_id` | `str`  | `None`   |
-| `limit`      | `int`  | `10`     |
-| `offset`     | `int`  | `0`      |
-| `mmr`        | `bool` | `False`  |
-| `strategy`   | `str`  | `None`   |
+| Param                  | Type   | Default  | Description                                                     |
+| ---------------------- | ------ | -------- | --------------------------------------------------------------- |
+| `query`                | `str`  | required | Search query text                                               |
+| `project_id`           | `str`  | `None`   | Scope to project                                                |
+| `limit`                | `int`  | `10`     | Max results                                                     |
+| `offset`               | `int`  | `0`      | Pagination offset                                               |
+| `mmr`                  | `bool` | `False`  | Maximal Marginal Relevance for diverse results                  |
+| `strategy`             | `str`  | `None`   | Explicit strategy override                                      |
+| `temporal_window_days` | `int`  | `7`      | Lookback window for temporal queries                            |
+| `include_meta`         | `bool` | `False`  | Wrap results with temporal exhaustion metadata                  |
 
-**Strategy values:** `auto`, `semantic`, `associative`, `temporal`, `relational`
+**Strategy values:** `semantic`, `associative`, `temporal`, `relational`, or `None` (hybrid default via intent classification). `auto` is deprecated and maps to hybrid.
 
-**Returns:** `list[SearchResult]` — `{id, name, score, node_type, observations?, relationships?}`
+**Returns:**
+- Default: `list[SearchResult]` — `{id, name, score, node_type, retrieval_strategy, recency_score, vector_score, ...}`
+- `include_meta=True` (temporal): `HybridSearchResponse` — `{results: [...], meta: {temporal_exhausted, temporal_window_days, suggestion}}`
 
 ### `search_associative`
 
@@ -343,6 +347,16 @@ Unified system diagnostics — graph stats, vector stats, and split-brain check 
 > [!NOTE]
 > `split_brain.status` is `ok` (consistent), `drift` (graph-only entities found), or `unavailable` (vector store unreachable).
 
+### `list_orphans`
+
+List graph nodes with zero relationships (orphans) for triage.
+
+| Param   | Type  | Default |
+| ------- | ----- | ------- |
+| `limit` | `int` | `50`    |
+
+**Returns:** `list[dict]` — `[{id, name, node_type, project_id, focus, labels, created_at}]`
+
 ### `reconnect`
 
 Session reconnect — structured briefing for a returning agent (E-4).
@@ -403,3 +417,26 @@ Register a new memory type in the ontology.
 Trigger the Librarian Agent to cluster and consolidate memories.
 
 **Returns:** `dict` — cycle report with consolidation results
+
+---
+
+## Drift Detection (DRIFT-002)
+
+### `search_stats`
+
+Return rolling-window search behaviour statistics.
+
+No parameters required.
+
+**Returns:** `dict` — Report containing:
+- `searches_recorded` — Number of searches in the rolling window
+- `strategy_distribution` — Count and percentage per retrieval strategy
+- `intent_distribution` — Count and percentage per detected intent
+- `score_percentiles` — p10, p50, p90 of result scores
+- `vector_score_null_rate_pct` — Percentage of results with null vector scores
+- `recency_score_zero_rate_pct` — Percentage of results with zero recency
+- `temporal_exhaustion_rate_pct` — Percentage of temporal queries that exhausted window
+- `latency_ms_percentiles` — p50, p90, p99 search latency
+- `avg_result_count` — Average results per search
+
+**Environment:** `SEARCH_STATS_ENABLED=false` to disable (default: enabled)

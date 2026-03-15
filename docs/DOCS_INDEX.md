@@ -1,24 +1,24 @@
 # Documentation Index
 
-> **Last updated**: March 11, 2026 — Post-gauntlet remediation, security hardening, docs audit
+> **Last updated**: March 14, 2026 — DRIFT detection suite (features A/B/C/D), RequestsDependencyWarning fix
 
 This is the master table of contents for all Claude Memory MCP documentation. Use this to find the right doc, and to know **when each doc needs updating**.
 
 ## Canonical Stats (Single Source of Truth)
 
-| Metric                                | Value                        | As Of   |
-| ------------------------------------- | ---------------------------- | ------- |
-| Source modules (`src/claude_memory/`) | 29                           | Mar 11  |
-| Scripts (`scripts/`)                  | 42                           | Mar 11  |
-| Unit tests                            | 904 (904 passed + 0 skipped) | Mar 11  |
-| Test files                            | 66                           | Mar 11  |
-| Coverage                              | ~98%                         | Mar 2   |
-| MCP tools                             | 30 (19 decorator + 11 runtime) | Mar 11 |
-| FalkorDB nodes                        | ~1,492                       | Mar 11  |
-| FalkorDB edges                        | ~2,951                       | Mar 9   |
-| Qdrant vectors                        | 1,436                        | Mar 11  |
-| Gold Stack tiers                      | 4 (pulse/gate/hammer/polish) | Mar 9   |
-| Gauntlet score                        | A- (95/100)                  | Mar 11  |
+| Metric                                | Value                          | As Of   |
+| ------------------------------------- | ------------------------------ | ------- |
+| Source modules (`src/claude_memory/`) | 32                             | Mar 14  |
+| Scripts (`scripts/`)                  | 42                             | Mar 11  |
+| Unit tests                            | 1,094 (1,094 passed + 0 skipped) | Mar 14  |
+| Test files                            | 77                             | Mar 14  |
+| Coverage                              | ~98%                           | Mar 14  |
+| MCP tools                             | 31 (20 decorator + 11 runtime) | Mar 14  |
+| FalkorDB nodes                        | ~1,492                         | Mar 11  |
+| FalkorDB edges                        | ~2,951                         | Mar 9   |
+| Qdrant vectors                        | 1,436                          | Mar 11  |
+| Gold Stack tiers                      | 5 (pulse/gate/hammer/polish/reaper) | Mar 14  |
+| Gauntlet score                        | A- (95/100)                    | Mar 11  |
 
 > **Update rule**: When any of these numbers change, update this table first, then propagate to the docs that reference them (mainly README.md, ARCHITECTURE.md).
 
@@ -29,6 +29,7 @@ This is the master table of contents for all Claude Memory MCP documentation. Us
 | File                                                                                                         | Purpose                                     | Audience | Update When                                            |
 | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------- | -------- | ------------------------------------------------------ |
 | [README.md](../README.md)       | Project overview, quick start, feature list | Everyone | New features, test count changes, architecture changes |
+| [CLAUDE.md](../CLAUDE.md)       | Agent instruction file — how to use the memory system | AI agents, Claude Code users | New tools, search strategies, or API changes |
 | [CHANGELOG.md](CHANGELOG.md) | Keep-a-Changelog format release notes | Everyone | Every release / significant commit batch |
 | [CONTRIBUTING.md](../CONTRIBUTING.md) | How to contribute, testing policy, code style | Contributors | Testing policy or workflow changes |
 | [GAUNTLET_RESULTS.md](GAUNTLET_RESULTS.md) | 20-round quality audit results (A- 95/100) | Testing enthusiasts | After re-running the gauntlet |
@@ -41,8 +42,8 @@ This is the master table of contents for all Claude Memory MCP documentation. Us
 | [ARCHITECTURE.md](ARCHITECTURE.md)                 | System design, data model, component diagram       | Developers, new agents | New components, data model changes, infra changes |
 | [SETUP.md](SETUP.md)                               | Comprehensive setup guide (agents + humans)        | Everyone               | Prerequisites, Docker, or config flow changes     |
 | [CODE_INVENTORY.md](CODE_INVENTORY.md)             | File-by-file manifest with descriptions            | Developers, auditors   | Any file added/removed/renamed                    |
-| [USER_MANUAL.md](USER_MANUAL.md)                   | How to use the 30 MCP tools with Claude            | End users              | New tools added, tool signatures change           |
-| [MCP_TOOL_REFERENCE.md](MCP_TOOL_REFERENCE.md)     | API reference: all 30 tools, params, return shapes | Developers, AI agents  | Tool added/removed, params change                 |
+| [USER_MANUAL.md](USER_MANUAL.md)                   | How to use the 31 MCP tools with Claude            | End users              | New tools added, tool signatures change           |
+| [MCP_TOOL_REFERENCE.md](MCP_TOOL_REFERENCE.md)     | API reference: all 31 tools, params, return shapes | Developers, AI agents  | Tool added/removed, params change                 |
 | [MAINTENANCE_MANUAL.md](MAINTENANCE_MANUAL.md)     | Backups, monitoring, troubleshooting               | Operators              | Infra changes, new backup procedures              |
 | [RUNBOOK.md](RUNBOOK.md)                           | 10 incident response recipes                       | Operators              | New incident types, procedure changes             |
 | [GOTCHAS.md](GOTCHAS.md)                           | Known traps, edge cases, subtleties                | Developers, agents     | New bugs discovered, workarounds found            |
@@ -59,6 +60,7 @@ This is the master table of contents for all Claude Memory MCP documentation. Us
 | [004-observation-vectorization.md](adr/004-observation-vectorization.md) | Observation embedding strategy   | Accepted |
 | [005-associative-search.md](adr/005-associative-search.md)               | Spreading activation for search  | Accepted |
 | [006-gold-stack.md](adr/006-gold-stack.md)                               | 5-tier Gold Stack CI/CD          | Accepted |
+| [007-hybrid-search-unification.md](adr/007-hybrid-search-unification.md) | Vector-first hybrid search       | Accepted |
 
 
 
