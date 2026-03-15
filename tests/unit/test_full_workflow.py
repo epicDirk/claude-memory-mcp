@@ -1,5 +1,5 @@
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -17,20 +17,28 @@ from claude_memory.tools import MemoryService
 def memory_service(mock_vector_store: Any) -> Any:
     # Patch FalkorDB in the REPOSITORY module and EmbeddingService in TOOLS
     with (
-        patch("claude_memory.repository.FalkorDB") as mock_db,
+        patch("falkordb.asyncio.FalkorDB") as mock_db,
         patch("claude_memory.embedding.EmbeddingService") as mock_embedder_cls,
     ):
-        # Mock DB
-        mock_client = MagicMock()
-        mock_db.return_value = mock_client
-        mock_client.select_graph.return_value = MagicMock()
-
         # Mock Embedder
         mock_embedder = MagicMock()
         mock_embedder_cls.return_value = mock_embedder
         mock_embedder.encode.return_value = [0.1] * 1024
+        mock_embedder.async_encode = AsyncMock(return_value=[0.1] * 1024)
 
         service = MemoryService(embedding_service=mock_embedder, vector_store=mock_vector_store)
+
+        # Mock the repo's select_graph to return a mock graph with async query
+        mock_graph = MagicMock()
+        mock_graph.query = AsyncMock()
+        service.repo.select_graph = AsyncMock(return_value=mock_graph)
+        service.repo._client = MagicMock()  # Prevent real connection attempts
+        # Mock lock_manager for async context manager support
+        mock_lock = MagicMock()
+        mock_lock.__aenter__ = AsyncMock(return_value=mock_lock)
+        mock_lock.__aexit__ = AsyncMock(return_value=False)
+        service.lock_manager = MagicMock()
+        service.lock_manager.lock.return_value = mock_lock
 
         yield service
 
@@ -39,7 +47,7 @@ def memory_service(mock_vector_store: Any) -> Any:
 async def test_day_in_the_life(memory_service: Any) -> None:
     """Simulates a full user workflow."""
     # Access graph via repo
-    graph = memory_service.repo.client.select_graph.return_value
+    graph = memory_service.repo.select_graph.return_value
 
     # Patch UUID generation to return deterministic IDs
 

@@ -13,7 +13,7 @@ from claude_memory.tools import MemoryService
 @pytest.fixture
 def memory_service() -> None:
     with (
-        patch("claude_memory.repository.FalkorDB"),
+        patch("falkordb.asyncio.FalkorDB"),
         patch("claude_memory.embedding.EmbeddingService") as _,
         patch("claude_memory.ontology.OntologyManager") as _,
     ):
@@ -28,11 +28,13 @@ def memory_service() -> None:
 def service_with_ontology() -> Generator[Any, None, None]:
     # Mock dependencies
     repo_mock = MagicMock()
-    repo_mock.create_node.return_value = {"id": "123"}
-    repo_mock.get_total_node_count.return_value = 1
+    repo_mock.create_node = AsyncMock(return_value={"id": "123"})
+    repo_mock.get_total_node_count = AsyncMock(return_value=1)
+    repo_mock.get_most_recent_entity = AsyncMock(return_value=None)
+    repo_mock.create_edge = AsyncMock()
 
     embedder_mock = MagicMock()
-    embedder_mock.encode.return_value = [0.1] * 1024
+    embedder_mock.async_encode = AsyncMock(return_value=[0.1] * 1024)
 
     vector_mock = MagicMock()
     vector_mock.upsert = AsyncMock()
@@ -49,6 +51,12 @@ def service_with_ontology() -> Generator[Any, None, None]:
     with patch("claude_memory.ontology.OntologyManager", return_value=real_ontology):
         service = MemoryService(embedding_service=embedder_mock, vector_store=vector_mock)
         service.repo = repo_mock
+    # Mock lock_manager for async context manager support
+    mock_lock = MagicMock()
+    mock_lock.__aenter__ = AsyncMock(return_value=mock_lock)
+    mock_lock.__aexit__ = AsyncMock(return_value=False)
+    service.lock_manager = MagicMock()
+    service.lock_manager.lock.return_value = mock_lock
     yield service
 
     if os.path.exists("test_dynamic_ontology.json"):

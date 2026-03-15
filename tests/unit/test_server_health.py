@@ -14,7 +14,7 @@ def test_server_registers_signal_handlers():
     with (
         patch.dict("os.environ", {"EMBEDDING_API_URL": "http://mock"}),
         patch("claude_memory.embedding.EmbeddingService"),
-        patch("claude_memory.repository.FalkorDB"),
+        patch("falkordb.asyncio.FalkorDB"),
         patch("claude_memory.lock_manager.redis.Redis"),
     ):
         import importlib

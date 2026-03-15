@@ -29,5 +29,8 @@ def test_mock_implementation() -> None:
         def encode(self, text: str) -> list[float]:
             return [0.1, 0.2]
 
+        async def async_encode(self, text: str) -> list[float]:
+            return [0.1, 0.2]
+
     mock = MockEmbedder()
     assert isinstance(mock, Embedder)

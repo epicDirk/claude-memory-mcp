@@ -24,10 +24,15 @@ def _make_search_mixin() -> SearchMixin:
     """Create a SearchMixin with mocked dependencies."""
     svc = SearchMixin.__new__(SearchMixin)
     svc.repo = MagicMock()
+    svc.repo.get_subgraph = AsyncMock()
+    svc.repo.execute_cypher = AsyncMock(return_value=MagicMock(result_set=[]))
+    svc.repo.increment_salience = AsyncMock()
     svc.vector_store = AsyncMock()
     svc.embedder = MagicMock()
     svc.embedder.encode.return_value = [0.1, 0.2, 0.3]
+    svc.embedder.async_encode = AsyncMock(return_value=[0.1, 0.2, 0.3])
     svc.activation_engine = MagicMock()
+    svc.activation_engine.spread = AsyncMock(return_value={})
     svc.context_manager = MagicMock()
     return svc
 
@@ -182,7 +187,8 @@ class TestAssociativeEnrichment:
 class TestHydrateSearchResults:
     """3e/1s/1h for _hydrate_search_results."""
 
-    def test_happy_builds_search_results(self) -> None:
+    @pytest.mark.asyncio()
+    async def test_happy_builds_search_results(self) -> None:
         """Happy: vector hits hydrated from graph → SearchResult objects."""
         svc = _make_search_mixin()
         svc._fire_salience_update = MagicMock()
@@ -200,22 +206,24 @@ class TestHydrateSearchResults:
             "edges": [],
         }
 
-        results = svc._hydrate_search_results([{"_id": "e1", "_score": 0.95}], deep=False)
+        results = await svc._hydrate_search_results([{"_id": "e1", "_score": 0.95}], deep=False)
         assert len(results) == 1
         assert results[0].name == "Alice"
         assert results[0].score == 0.95
         assert results[0].distance == pytest.approx(0.05)
 
-    def test_sad_no_graph_match(self) -> None:
+    @pytest.mark.asyncio()
+    async def test_sad_no_graph_match(self) -> None:
         """Sad: vector hit has no graph node → filtered out."""
         svc = _make_search_mixin()
         svc._fire_salience_update = MagicMock()
         svc.repo.get_subgraph.return_value = {"nodes": [], "edges": []}
 
-        results = svc._hydrate_search_results([{"_id": "ghost", "_score": 0.8}], deep=False)
+        results = await svc._hydrate_search_results([{"_id": "ghost", "_score": 0.8}], deep=False)
         assert results == []
 
-    def test_evil_missing_node_properties_use_defaults(self) -> None:
+    @pytest.mark.asyncio()
+    async def test_evil_missing_node_properties_use_defaults(self) -> None:
         """Evil: node with missing properties uses safe defaults."""
         svc = _make_search_mixin()
         svc._fire_salience_update = MagicMock()
@@ -224,13 +232,14 @@ class TestHydrateSearchResults:
             "edges": [],
         }
 
-        results = svc._hydrate_search_results([{"_id": "e1", "_score": 0.5}], deep=False)
+        results = await svc._hydrate_search_results([{"_id": "e1", "_score": 0.5}], deep=False)
         assert len(results) == 1
         assert results[0].name == "Unknown"
         assert results[0].node_type == "Entity"
         assert results[0].project_id == "unknown"
 
-    def test_evil_deep_true_passes_depth_1(self) -> None:
+    @pytest.mark.asyncio()
+    async def test_evil_deep_true_passes_depth_1(self) -> None:
         """Evil: deep=True passes depth=1 to get_subgraph."""
         svc = _make_search_mixin()
         svc._fire_salience_update = MagicMock()
@@ -239,10 +248,11 @@ class TestHydrateSearchResults:
             "edges": [],
         }
 
-        svc._hydrate_search_results([{"_id": "e1", "_score": 0.5}], deep=True)
+        await svc._hydrate_search_results([{"_id": "e1", "_score": 0.5}], deep=True)
         svc.repo.get_subgraph.assert_called_once_with(["e1"], depth=1)
 
-    def test_evil_multiple_hits_only_matched_returned(self) -> None:
+    @pytest.mark.asyncio()
+    async def test_evil_multiple_hits_only_matched_returned(self) -> None:
         """Evil: only vector hits with matching graph nodes returned."""
         svc = _make_search_mixin()
         svc._fire_salience_update = MagicMock()
@@ -252,7 +262,7 @@ class TestHydrateSearchResults:
         }
 
         # e1 in graph, e2 not
-        results = svc._hydrate_search_results(
+        results = await svc._hydrate_search_results(
             [{"_id": "e1", "_score": 0.9}, {"_id": "e2", "_score": 0.8}],
             deep=False,
         )

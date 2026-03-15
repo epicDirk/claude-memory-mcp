@@ -6,7 +6,7 @@ Tests verify BEHAVIOR: given a known graph structure, the algorithms
 return correct relative rankings and community groupings.
 """
 
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -17,6 +17,13 @@ def _make_analysis_mixin() -> AnalysisMixin:
     """Build an AnalysisMixin with all dependencies mocked."""
     mixin = AnalysisMixin.__new__(AnalysisMixin)
     mixin.repo = MagicMock()
+    mixin.repo.execute_cypher = AsyncMock()
+    mixin.repo.get_graph_health = AsyncMock(return_value={})
+    mixin.repo.get_all_nodes = AsyncMock(return_value=[])
+    mixin.repo.get_all_edges = AsyncMock(return_value=[])
+    mixin.repo.get_all_node_ids = AsyncMock(return_value=[])
+    mixin.repo.list_orphans = AsyncMock(return_value=[])
+    mixin.repo.query_timeline = AsyncMock(return_value=[])
     mixin.embedder = MagicMock()
     mixin.vector_store = MagicMock()
     mixin.ontology = MagicMock()

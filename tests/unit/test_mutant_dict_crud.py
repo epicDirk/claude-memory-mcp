@@ -16,16 +16,19 @@ def _make_mock_service() -> tuple:
     """Build mocked service infrastructure."""
     mock_embedder = MagicMock()
     mock_embedder.encode.return_value = [0.1] * 1024
+    mock_embedder.async_encode = AsyncMock(return_value=[0.1] * 1024)
 
     mock_repo = MagicMock()
-    mock_repo.create_node.return_value = {
+    mock_repo.create_node = AsyncMock(return_value={
         "id": "test-id-123",
         "name": "Test",
         "node_type": "Entity",
         "project_id": "p1",
-    }
-    mock_repo.get_total_node_count.return_value = 42
-    mock_repo.get_most_recent_entity.return_value = None
+    })
+    mock_repo.get_total_node_count = AsyncMock(return_value=42)
+    mock_repo.get_most_recent_entity = AsyncMock(return_value=None)
+    mock_repo.execute_cypher = AsyncMock(return_value=MagicMock(result_set=[]))
+    mock_repo.select_graph = AsyncMock()
 
     mock_vector = MagicMock()
     mock_vector.upsert = AsyncMock()

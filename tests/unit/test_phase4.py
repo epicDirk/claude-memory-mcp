@@ -11,11 +11,19 @@ from claude_memory.tools import MemoryService
 def mock_repo() -> Generator[Any, None, None]:
     with patch("claude_memory.tools.MemoryRepository") as mock_repo_cls:
         repo_instance = mock_repo_cls.return_value
-        # Default returns
-        repo_instance.create_node.return_value = {"id": "mock-id", "name": "Mock Node"}
-        repo_instance.create_edge.return_value = {"id": "mock-rel-id"}
-        repo_instance.update_node.return_value = {"id": "mock-id"}
-        repo_instance.execute_cypher.return_value = MagicMock(result_set=[])
+        # Default returns — repo methods are now async
+        repo_instance.create_node = AsyncMock(return_value={"id": "mock-id", "name": "Mock Node"})
+        repo_instance.create_edge = AsyncMock(return_value={"id": "mock-rel-id"})
+        repo_instance.update_node = AsyncMock(return_value={"id": "mock-id"})
+        repo_instance.delete_node = AsyncMock(return_value=True)
+        repo_instance.delete_edge = AsyncMock(return_value=True)
+        repo_instance.get_node = AsyncMock(return_value=None)
+        repo_instance.execute_cypher = AsyncMock(return_value=MagicMock(result_set=[]))
+        repo_instance.get_subgraph = AsyncMock(return_value={"nodes": [], "edges": []})
+        repo_instance.get_total_node_count = AsyncMock(return_value=0)
+        repo_instance.get_most_recent_entity = AsyncMock(return_value=None)
+        repo_instance.select_graph = AsyncMock()
+        repo_instance.increment_salience = AsyncMock(return_value=[])
         yield repo_instance
 
 
@@ -26,6 +34,7 @@ def memory_service(mock_repo: Any) -> Any:
         mock_embedding_service = mock_embedder_cls.return_value
         # Mock encoding logic
         mock_embedding_service.encode.return_value = [0.1] * 1024
+        mock_embedding_service.async_encode = AsyncMock(return_value=[0.1] * 1024)
 
         # Mock Vector Store
         mock_vector_store = MagicMock()

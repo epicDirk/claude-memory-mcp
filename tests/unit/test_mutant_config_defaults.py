@@ -6,7 +6,7 @@ and exponential backoff delay calculation.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -23,18 +23,16 @@ class TestRepositoryDefaults:
     """Assert MemoryRepository constructor defaults and env var chains."""
 
     def test_repo_evil_host_not_mutated(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Evil: host default must be 'localhost', not 'XXlocalhostXX'."""
+        """Evil: host default must be '127.0.0.1', not 'XXlocalhostXX'."""
         monkeypatch.delenv("FALKORDB_HOST", raising=False)
         monkeypatch.delenv("FALKORDB_PORT", raising=False)
         monkeypatch.delenv("FALKORDB_PASSWORD", raising=False)
 
-        with patch("claude_memory.repository.FalkorDB") as mock_fdb:
-            mock_fdb.return_value = MagicMock()
-            from claude_memory.repository import MemoryRepository
+        from claude_memory.repository import MemoryRepository
 
-            repo = MemoryRepository()
-            assert repo.host != "XXlocalhostXX"
-            assert repo.host == "localhost"
+        repo = MemoryRepository()
+        assert repo.host != "XXlocalhostXX"
+        assert repo.host == "127.0.0.1"
 
     def test_repo_evil_port_not_mutated(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Evil: port default must be 6379, not 6380 or 0."""
@@ -42,13 +40,11 @@ class TestRepositoryDefaults:
         monkeypatch.delenv("FALKORDB_PORT", raising=False)
         monkeypatch.delenv("FALKORDB_PASSWORD", raising=False)
 
-        with patch("claude_memory.repository.FalkorDB") as mock_fdb:
-            mock_fdb.return_value = MagicMock()
-            from claude_memory.repository import MemoryRepository
+        from claude_memory.repository import MemoryRepository
 
-            repo = MemoryRepository()
-            assert repo.port == 6379
-            assert repo.port != 6380
+        repo = MemoryRepository()
+        assert repo.port == 6379
+        assert repo.port != 6380
 
     def test_repo_evil_graph_name_not_mutated(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Evil: graph_name must be 'claude_memory'."""
@@ -56,12 +52,10 @@ class TestRepositoryDefaults:
         monkeypatch.delenv("FALKORDB_PORT", raising=False)
         monkeypatch.delenv("FALKORDB_PASSWORD", raising=False)
 
-        with patch("claude_memory.repository.FalkorDB") as mock_fdb:
-            mock_fdb.return_value = MagicMock()
-            from claude_memory.repository import MemoryRepository
+        from claude_memory.repository import MemoryRepository
 
-            repo = MemoryRepository()
-            assert repo.graph_name == "claude_memory"
+        repo = MemoryRepository()
+        assert repo.graph_name == "claude_memory"
 
     def test_repo_sad_env_override_host(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Sad: env var overrides default host."""
@@ -69,12 +63,10 @@ class TestRepositoryDefaults:
         monkeypatch.delenv("FALKORDB_PORT", raising=False)
         monkeypatch.delenv("FALKORDB_PASSWORD", raising=False)
 
-        with patch("claude_memory.repository.FalkorDB") as mock_fdb:
-            mock_fdb.return_value = MagicMock()
-            from claude_memory.repository import MemoryRepository
+        from claude_memory.repository import MemoryRepository
 
-            repo = MemoryRepository()
-            assert repo.host == "custom-host"
+        repo = MemoryRepository()
+        assert repo.host == "custom-host"
 
     def test_repo_happy_all_defaults(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Happy: all defaults match expected values."""
@@ -82,15 +74,13 @@ class TestRepositoryDefaults:
         monkeypatch.delenv("FALKORDB_PORT", raising=False)
         monkeypatch.delenv("FALKORDB_PASSWORD", raising=False)
 
-        with patch("claude_memory.repository.FalkorDB") as mock_fdb:
-            mock_fdb.return_value = MagicMock()
-            from claude_memory.repository import MemoryRepository
+        from claude_memory.repository import MemoryRepository
 
-            repo = MemoryRepository()
-            assert repo.host == "localhost"
-            assert repo.port == 6379
-            assert repo.password is None
-            assert repo.graph_name == "claude_memory"
+        repo = MemoryRepository()
+        assert repo.host == "127.0.0.1"
+        assert repo.port == 6379
+        assert repo.password is None
+        assert repo.graph_name == "claude_memory"
 
 
 class TestRepositoryConstants:
@@ -141,7 +131,7 @@ class TestLockManagerDefaults:
     """Assert LockManager constructor defaults and env var chains."""
 
     def test_lock_evil_host_not_mutated(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Evil: host default must be 'localhost'."""
+        """Evil: host default must be '127.0.0.1'."""
         monkeypatch.delenv("REDIS_HOST", raising=False)
         monkeypatch.delenv("REDIS_PORT", raising=False)
         monkeypatch.delenv("REDIS_PASSWORD", raising=False)
@@ -154,7 +144,7 @@ class TestLockManagerDefaults:
             from claude_memory.lock_manager import LockManager
 
             lm = LockManager()
-            assert lm.host == "localhost"
+            assert lm.host == "127.0.0.1"
             assert lm.host != "XXlocalhostXX"
 
     def test_lock_evil_port_not_mutated(self, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -219,7 +209,7 @@ class TestLockManagerDefaults:
             from claude_memory.lock_manager import LockManager
 
             lm = LockManager()
-            assert lm.host == "localhost"
+            assert lm.host == "127.0.0.1"
             assert lm.port == 6379
             assert lm.password is None
 

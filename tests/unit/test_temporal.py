@@ -1,6 +1,6 @@
 from collections.abc import Generator
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -10,7 +10,7 @@ from claude_memory.tools import MemoryService
 @pytest.fixture
 def memory_service(mock_vector_store: Any) -> Generator[MemoryService, None, None]:
     with (
-        patch("claude_memory.repository.FalkorDB"),
+        patch("falkordb.asyncio.FalkorDB"),
         patch("claude_memory.embedding.EmbeddingService") as mock_embedder_cls,
     ):
         # Setup Embedder Mock
@@ -18,10 +18,14 @@ def memory_service(mock_vector_store: Any) -> Generator[MemoryService, None, Non
         mock_embedder_cls.return_value = mock_instance
         # Default behavior
         mock_instance.encode.return_value = [0.1] * 1024
+        mock_instance.async_encode = AsyncMock(return_value=[0.1] * 1024)
 
         service = MemoryService(embedding_service=mock_instance, vector_store=mock_vector_store)
         service.repo.client = MagicMock()
-        service.repo.client.select_graph.return_value = MagicMock()
+        graph = MagicMock()
+        graph.query = AsyncMock()
+        service.repo.client.select_graph.return_value = graph
+        service.repo.select_graph = AsyncMock(return_value=graph)
 
         # Ensure service uses our mock
         service.embedder = mock_instance
@@ -58,7 +62,7 @@ async def test_point_in_time_query(memory_service: Any, mock_vector_store: Any) 
 
     # Repo get_subgraph should hydrate nodes
     # We access repo via memory_service.repo
-    memory_service.repo.get_subgraph = MagicMock(
+    memory_service.repo.get_subgraph = AsyncMock(
         return_value={
             "nodes": [
                 {"id": "e1", "name": "Match", "created_at": "2023-01-01"},

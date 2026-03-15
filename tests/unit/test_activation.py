@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 from claude_memory.activation import ActivationEngine
 
@@ -11,7 +13,7 @@ from claude_memory.activation import ActivationEngine
 def _make_engine(subgraph: dict | None = None) -> ActivationEngine:
     """Create an ActivationEngine with a mocked repository."""
     repo = MagicMock()
-    repo.get_subgraph.return_value = subgraph or {"nodes": [], "edges": []}
+    repo.get_subgraph = AsyncMock(return_value=subgraph or {"nodes": [], "edges": []})
     return ActivationEngine(repo=repo)
 
 
@@ -45,15 +47,17 @@ def test_activate_empty_seeds() -> None:
 # ── spread() ────────────────────────────────────────────────────────
 
 
-def test_spread_no_neighbors() -> None:
+@pytest.mark.asyncio
+async def test_spread_no_neighbors() -> None:
     """Seed with no edges returns only the seed."""
     engine = _make_engine({"nodes": [{"id": "a"}], "edges": []})
     seeds = {"a": 1.0}
-    result = engine.spread(seeds, decay=0.6, max_hops=3)
+    result = await engine.spread(seeds, decay=0.6, max_hops=3)
     assert result == {"a": 1.0}
 
 
-def test_spread_one_hop() -> None:
+@pytest.mark.asyncio
+async def test_spread_one_hop() -> None:
     """Energy decays by factor on direct neighbors."""
     subgraph = {
         "nodes": [{"id": "a"}, {"id": "b"}, {"id": "c"}],
@@ -64,13 +68,14 @@ def test_spread_one_hop() -> None:
     }
     engine = _make_engine(subgraph)
     seeds = {"a": 1.0}
-    result = engine.spread(seeds, decay=0.5, max_hops=1)
+    result = await engine.spread(seeds, decay=0.5, max_hops=1)
     assert result["a"] == 1.0
     assert result["b"] == 0.5
     assert result["c"] == 0.5
 
 
-def test_spread_two_hops_decay_compounds() -> None:
+@pytest.mark.asyncio
+async def test_spread_two_hops_decay_compounds() -> None:
     """Energy decays multiplicatively over 2 hops: decay^2."""
     # Hop 1: a -> b (energy 0.6), Hop 2: b -> c (energy 0.36)
     subgraph_hop1 = {
@@ -90,14 +95,15 @@ def test_spread_two_hops_decay_compounds() -> None:
     ]
 
     seeds = {"a": 1.0}
-    result = engine.spread(seeds, decay=0.6, max_hops=3)
+    result = await engine.spread(seeds, decay=0.6, max_hops=3)
 
     assert result["a"] == 1.0
     assert abs(result["b"] - 0.6) < 1e-9
     assert abs(result["c"] - 0.36) < 1e-9
 
 
-def test_spread_lateral_inhibition() -> None:
+@pytest.mark.asyncio
+async def test_spread_lateral_inhibition() -> None:
     """Only top-K nodes by energy propagate to the next hop."""
     # Create edges from 'a' to 5 nodes, but set lateral_inhibition_k=2
     edges = [{"source": "a", "target": f"n{i}"} for i in range(5)]
@@ -111,7 +117,7 @@ def test_spread_lateral_inhibition() -> None:
     engine.repo.get_subgraph.side_effect = [subgraph, empty_subgraph]
 
     seeds = {"a": 1.0}
-    result = engine.spread(seeds, decay=0.6, max_hops=2, lateral_inhibition_k=2)
+    result = await engine.spread(seeds, decay=0.6, max_hops=2, lateral_inhibition_k=2)
 
     # All 5 neighbors should have received energy in hop 1
     for i in range(5):
@@ -122,7 +128,8 @@ def test_spread_lateral_inhibition() -> None:
     assert len(second_call_ids) == 2
 
 
-def test_spread_accumulation() -> None:
+@pytest.mark.asyncio
+async def test_spread_accumulation() -> None:
     """Node reachable via 2 paths accumulates energy from both."""
     # a -> c (0.6) and b -> c (0.6), so c should get 1.2
     subgraph = {
@@ -134,14 +141,15 @@ def test_spread_accumulation() -> None:
     }
     engine = _make_engine(subgraph)
     seeds = {"a": 1.0, "b": 1.0}
-    result = engine.spread(seeds, decay=0.6, max_hops=1)
+    result = await engine.spread(seeds, decay=0.6, max_hops=1)
 
     assert abs(result["c"] - 1.2) < 1e-9
 
 
-def test_spread_empty_activation() -> None:
+@pytest.mark.asyncio
+async def test_spread_empty_activation() -> None:
     engine = _make_engine()
-    result = engine.spread({})
+    result = await engine.spread({})
     assert result == {}
 
 
@@ -222,7 +230,8 @@ def test_recency_score_naive_datetime() -> None:
 # ── spread() edge cases ─────────────────────────────────────────────
 
 
-def test_spread_reverse_direction_flow() -> None:
+@pytest.mark.asyncio
+async def test_spread_reverse_direction_flow() -> None:
     """Energy flows from target to source (reverse direction) when target is seed."""
     # Edge defined as b -> a, but seed is 'a' (the target).
     # Reverse flow: a is target, so energy flows from a to b.
@@ -232,13 +241,14 @@ def test_spread_reverse_direction_flow() -> None:
     }
     engine = _make_engine(subgraph)
     seeds = {"a": 1.0}
-    result = engine.spread(seeds, decay=0.5, max_hops=1)
+    result = await engine.spread(seeds, decay=0.5, max_hops=1)
     # 'a' is target in the edge, so reverse flow sends energy to 'b'
     assert result["a"] == 1.0
     assert result["b"] == 0.5
 
 
-def test_spread_edge_with_none_fields() -> None:
+@pytest.mark.asyncio
+async def test_spread_edge_with_none_fields() -> None:
     """Edges with missing source or target are skipped."""
     subgraph = {
         "nodes": [{"id": "a"}],
@@ -250,6 +260,6 @@ def test_spread_edge_with_none_fields() -> None:
     }
     engine = _make_engine(subgraph)
     seeds = {"a": 1.0}
-    result = engine.spread(seeds, decay=0.6, max_hops=1)
+    result = await engine.spread(seeds, decay=0.6, max_hops=1)
     # No energy should spread because all edges are invalid
     assert result == {"a": 1.0}

@@ -19,8 +19,8 @@ def _make_analysis_mixin() -> AnalysisMixin:
     mixin.vector_store = AsyncMock()
 
     # Default happy-path returns
-    mixin.repo.create_node.return_value = {"id": "new-123", "name": "Consolidated"}
-    mixin.embedder.encode.return_value = [0.1] * 1024
+    mixin.repo.create_node = AsyncMock(return_value={"id": "new-123", "name": "Consolidated"})
+    mixin.embedder.async_encode = AsyncMock(return_value=[0.1] * 1024)
 
     return mixin
 
@@ -36,8 +36,8 @@ async def test_partial_failure_still_archives_others() -> None:
             raise ConnectionError("FalkorDB connection lost")
         return {"id": entity_id, **props}
 
-    mixin.repo.create_edge.return_value = {"id": "edge-1"}
-    mixin.repo.update_node.side_effect = _update_node_side_effect
+    mixin.repo.create_edge = AsyncMock(return_value={"id": "edge-1"})
+    mixin.repo.update_node = AsyncMock(side_effect=_update_node_side_effect)
 
     result = await mixin.consolidate_memories(
         entity_ids=["entity-1", "entity-2", "entity-3"],
@@ -55,8 +55,8 @@ async def test_partial_failure_still_archives_others() -> None:
 async def test_all_succeed_no_errors() -> None:
     """When all entities archive successfully, no consolidation_errors key."""
     mixin = _make_analysis_mixin()
-    mixin.repo.create_edge.return_value = {"id": "edge-1"}
-    mixin.repo.update_node.return_value = {"id": "ok"}
+    mixin.repo.create_edge = AsyncMock(return_value={"id": "edge-1"})
+    mixin.repo.update_node = AsyncMock(return_value={"id": "ok"})
 
     result = await mixin.consolidate_memories(
         entity_ids=["entity-1", "entity-2"],

@@ -61,7 +61,7 @@ COMMUNITY_MEMBERS = ["A", "B", "C"]
 
 # ─── Module Import ──────────────────────────────────────────────────
 
-with patch("claude_memory.repository.FalkorDB"):
+with patch("falkordb.asyncio.FalkorDB"):
     with patch("claude_memory.lock_manager.redis.Redis"):
         with patch("claude_memory.vector_store.AsyncQdrantClient"):
             from claude_memory.schema import (
@@ -84,14 +84,27 @@ def service() -> MemoryService:
     """Creates a MemoryService with all dependencies mocked."""
     mock_embedder = MagicMock()
     mock_embedder.encode.return_value = MOCK_EMBEDDING
+    mock_embedder.async_encode = AsyncMock(return_value=MOCK_EMBEDDING)
 
-    with patch("claude_memory.repository.FalkorDB"):
+    with patch("falkordb.asyncio.FalkorDB"):
         with patch("claude_memory.lock_manager.redis.Redis"):
             with patch("claude_memory.vector_store.AsyncQdrantClient"):
                 svc = MemoryService(embedding_service=mock_embedder)
 
     # Replace repo, vector_store, lock_manager with mocks
     svc.repo = MagicMock()
+    svc.repo.create_node = AsyncMock(return_value={"id": "test-id", "name": "Test"})
+    svc.repo.get_node = AsyncMock(return_value=None)
+    svc.repo.update_node = AsyncMock(return_value={"id": "test-id"})
+    svc.repo.delete_node = AsyncMock(return_value=True)
+    svc.repo.create_edge = AsyncMock(return_value={"id": "edge-id"})
+    svc.repo.delete_edge = AsyncMock(return_value=True)
+    svc.repo.execute_cypher = AsyncMock(return_value=MagicMock(result_set=[]))
+    svc.repo.get_subgraph = AsyncMock(return_value={"nodes": [], "edges": []})
+    svc.repo.get_total_node_count = AsyncMock(return_value=0)
+    svc.repo.get_most_recent_entity = AsyncMock(return_value=None)
+    svc.repo.increment_salience = AsyncMock(return_value=[])
+    svc.repo.select_graph = AsyncMock()
     svc.vector_store = AsyncMock()
     svc.lock_manager = MagicMock()
 

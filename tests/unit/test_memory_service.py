@@ -61,7 +61,7 @@ COMMUNITY_MEMBERS = ["A", "B", "C"]
 
 # ─── Module Import ──────────────────────────────────────────────────
 
-with patch("claude_memory.repository.FalkorDB"):
+with patch("falkordb.asyncio.FalkorDB"):
     with patch("claude_memory.lock_manager.redis.Redis"):
         with patch("claude_memory.vector_store.AsyncQdrantClient"):
             from claude_memory.schema import (
@@ -84,14 +84,36 @@ def service() -> MemoryService:
     """Creates a MemoryService with all dependencies mocked."""
     mock_embedder = MagicMock()
     mock_embedder.encode.return_value = MOCK_EMBEDDING
+    mock_embedder.async_encode = AsyncMock(return_value=MOCK_EMBEDDING)
 
-    with patch("claude_memory.repository.FalkorDB"):
+    with patch("falkordb.asyncio.FalkorDB"):
         with patch("claude_memory.lock_manager.redis.Redis"):
             with patch("claude_memory.vector_store.AsyncQdrantClient"):
                 svc = MemoryService(embedding_service=mock_embedder)
 
     # Replace repo, vector_store, lock_manager with mocks
     svc.repo = MagicMock()
+    svc.repo.create_node = AsyncMock()
+    svc.repo.get_node = AsyncMock(return_value=None)
+    svc.repo.update_node = AsyncMock()
+    svc.repo.delete_node = AsyncMock()
+    svc.repo.create_edge = AsyncMock()
+    svc.repo.delete_edge = AsyncMock()
+    svc.repo.execute_cypher = AsyncMock()
+    svc.repo.get_total_node_count = AsyncMock(return_value=0)
+    svc.repo.get_all_nodes = AsyncMock(return_value=[])
+    svc.repo.get_subgraph = AsyncMock(return_value={"nodes": [], "edges": []})
+    svc.repo.increment_salience = AsyncMock(return_value=[])
+    svc.repo.get_most_recent_entity = AsyncMock(return_value=None)
+    svc.repo.query_timeline = AsyncMock(return_value=[])
+    svc.repo.get_temporal_neighbors = AsyncMock(return_value=[])
+    svc.repo.create_temporal_edge = AsyncMock()
+    svc.repo.get_bottles = AsyncMock(return_value=[])
+    svc.repo.get_graph_health = AsyncMock(return_value={})
+    svc.repo.get_all_node_ids = AsyncMock(return_value=[])
+    svc.repo.get_all_edges = AsyncMock(return_value=[])
+    svc.repo.list_orphans = AsyncMock(return_value=[])
+    svc.repo.select_graph = AsyncMock()
     svc.vector_store = AsyncMock()
     svc.lock_manager = MagicMock()
 
@@ -322,7 +344,7 @@ async def test_add_observation_creates_vector(service: MemoryService) -> None:
         "project_id": "proj-1",
     }
     service.repo.execute_cypher.return_value = _make_cypher_result([[mock_obs_node]])
-    service.embedder.encode.return_value = [0.1] * 1024
+    service.embedder.async_encode = AsyncMock(return_value=[0.1] * 1024)
 
     params = ObservationParams(
         entity_id=ENTITY_ID,
@@ -333,7 +355,7 @@ async def test_add_observation_creates_vector(service: MemoryService) -> None:
     assert result["id"] == "obs-002"
 
     # Verify embedding was computed
-    service.embedder.encode.assert_called_once()
+    service.embedder.async_encode.assert_called_once()
     # Verify vector was upserted with observation metadata
     service.vector_store.upsert.assert_called_once()
     call_kwargs = service.vector_store.upsert.call_args
@@ -353,7 +375,7 @@ async def test_add_observation_skip_embed_on_entity_not_found(service: MemorySer
     )
     result = await service.add_observation(params)
     assert "error" in result
-    service.embedder.encode.assert_not_called()
+    service.embedder.async_encode.assert_not_called()
     service.vector_store.upsert.assert_not_called()
 
 
@@ -366,7 +388,7 @@ async def test_add_observation_vector_upsert_failure_raises(service: MemoryServi
         "project_id": PROJECT_ID,
     }
     service.repo.execute_cypher.return_value = _make_cypher_result([[mock_obs_node]])
-    service.embedder.encode.return_value = [0.1] * 1024
+    service.embedder.async_encode = AsyncMock(return_value=[0.1] * 1024)
     service.vector_store.upsert.side_effect = ConnectionError("qdrant down")
 
     params = ObservationParams(
@@ -1106,55 +1128,61 @@ def test_temporal_query_params_with_project() -> None:
 # (select_graph.return_value.query.return_value) and only tested mock calls.
 
 
-def test_query_timeline_with_project(service: MemoryService) -> None:
+@pytest.mark.asyncio()
+async def test_query_timeline_with_project(service: MemoryService) -> None:
     """query_timeline filters by project_id when provided."""
     service.repo.query_timeline.return_value = [
         {"id": ENTITY_ID, "name": ENTITY_NAME, "project_id": PROJECT_ID}
     ]
-    result = service.repo.query_timeline(
+    result = await service.repo.query_timeline(
         start="2026-01-01", end="2026-02-01", project_id=PROJECT_ID
     )
     assert len(result) == 1
     assert result[0]["project_id"] == PROJECT_ID
 
 
-def test_get_temporal_neighbors_before(service: MemoryService) -> None:
+@pytest.mark.asyncio()
+async def test_get_temporal_neighbors_before(service: MemoryService) -> None:
     """get_temporal_neighbors returns predecessors."""
     service.repo.get_temporal_neighbors.return_value = [{"id": "prev-1", "name": "Previous"}]
-    result = service.repo.get_temporal_neighbors(ENTITY_ID, direction="before")
+    result = await service.repo.get_temporal_neighbors(ENTITY_ID, direction="before")
     assert len(result) == 1
     service.repo.get_temporal_neighbors.assert_called_once_with(ENTITY_ID, direction="before")
 
 
-def test_get_temporal_neighbors_after(service: MemoryService) -> None:
+@pytest.mark.asyncio()
+async def test_get_temporal_neighbors_after(service: MemoryService) -> None:
     """get_temporal_neighbors returns successors."""
     service.repo.get_temporal_neighbors.return_value = [{"id": "next-1", "name": "Next"}]
-    result = service.repo.get_temporal_neighbors(ENTITY_ID, direction="after")
+    result = await service.repo.get_temporal_neighbors(ENTITY_ID, direction="after")
     assert len(result) == 1
 
 
-def test_get_temporal_neighbors_both(service: MemoryService) -> None:
+@pytest.mark.asyncio()
+async def test_get_temporal_neighbors_both(service: MemoryService) -> None:
     """get_temporal_neighbors default direction returns both."""
     service.repo.get_temporal_neighbors.return_value = [{"id": "prev-1"}, {"id": "next-1"}]
-    result = service.repo.get_temporal_neighbors(ENTITY_ID)
+    result = await service.repo.get_temporal_neighbors(ENTITY_ID)
     assert len(result) == 2
 
 
-def test_create_temporal_edge_success(service: MemoryService) -> None:
+@pytest.mark.asyncio()
+async def test_create_temporal_edge_success(service: MemoryService) -> None:
     """create_temporal_edge returns relationship metadata."""
     service.repo.create_temporal_edge.return_value = {
         "rel_type": "PRECEDED_BY",
         "from_id": "entity-a",
         "to_id": "entity-b",
     }
-    result = service.repo.create_temporal_edge("entity-a", "entity-b")
+    result = await service.repo.create_temporal_edge("entity-a", "entity-b")
     assert result["rel_type"] == "PRECEDED_BY"
 
 
-def test_create_temporal_edge_not_found(service: MemoryService) -> None:
+@pytest.mark.asyncio()
+async def test_create_temporal_edge_not_found(service: MemoryService) -> None:
     """create_temporal_edge returns error when entities not found."""
     service.repo.create_temporal_edge.return_value = {"error": "One or both entities not found"}
-    result = service.repo.create_temporal_edge("missing-a", "missing-b")
+    result = await service.repo.create_temporal_edge("missing-a", "missing-b")
     assert "error" in result
 
 
@@ -1174,7 +1202,7 @@ async def test_create_entity_initializes_occurred_at(
         "name": ENTITY_NAME,
         "node_type": "Concept",
     }
-    service.embedder.encode.return_value = [0.1] * 384
+    service.embedder.async_encode = AsyncMock(return_value=[0.1] * 384)
     service.vector_store.upsert = AsyncMock()
     service.repo.get_total_node_count.return_value = 1
 
@@ -1201,7 +1229,7 @@ async def test_create_entity_respects_user_occurred_at(
         "id": "new-id",
         "name": ENTITY_NAME,
     }
-    service.embedder.encode.return_value = [0.1] * 384
+    service.embedder.async_encode = AsyncMock(return_value=[0.1] * 384)
     service.vector_store.upsert = AsyncMock()
     service.repo.get_total_node_count.return_value = 1
 
@@ -1617,8 +1645,8 @@ async def test_delete_entity_hard_vector_failure_always_raises(
 
 
 async def test_search_returns_empty_on_embedder_failure(service: MemoryService) -> None:
-    """When embedder.encode raises, search should return [] instead of propagating."""
-    service.embedder.encode.side_effect = ConnectionError("Embedding server down")
+    """When embedder.async_encode raises, search should return [] instead of propagating."""
+    service.embedder.async_encode = AsyncMock(side_effect=ConnectionError("Embedding server down"))
 
     result = await service.search(SEARCH_QUERY, limit=SEARCH_LIMIT)
     assert result == []
@@ -1635,8 +1663,8 @@ async def test_search_returns_empty_on_vector_store_failure(service: MemoryServi
 async def test_search_associative_returns_empty_on_embedder_failure(
     service: MemoryService,
 ) -> None:
-    """When embedder.encode raises, search_associative returns [] instead of propagating."""
-    service.embedder.encode.side_effect = ConnectionError("Embedding server down")
+    """When embedder.async_encode raises, search_associative returns [] instead of propagating."""
+    service.embedder.async_encode = AsyncMock(side_effect=ConnectionError("Embedding server down"))
 
     result = await service.search_associative(SEARCH_QUERY, limit=SEARCH_LIMIT)
     assert result == []

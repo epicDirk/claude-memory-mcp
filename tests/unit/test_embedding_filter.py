@@ -16,7 +16,16 @@ from claude_memory.tools import MemoryService
 def mock_service():
     """Build a MemoryService with all deps mocked."""
     mock_embedder = MagicMock()
+    mock_embedder.async_encode = AsyncMock(return_value=[0.1] * 1024)
     mock_repo = MagicMock()
+    mock_repo.create_node = AsyncMock()
+    mock_repo.get_node = AsyncMock(return_value=None)
+    mock_repo.get_total_node_count = AsyncMock(return_value=0)
+    mock_repo.get_most_recent_entity = AsyncMock(return_value=None)
+    mock_repo.create_edge = AsyncMock()
+    mock_repo.get_subgraph = AsyncMock(return_value={"nodes": [], "edges": []})
+    mock_repo.execute_cypher = AsyncMock()
+    mock_repo.increment_salience = AsyncMock(return_value=[])
     mock_vector = AsyncMock()
 
     service = MemoryService(embedding_service=mock_embedder, vector_store=mock_vector)
@@ -31,21 +40,23 @@ def mock_service():
 @pytest.mark.asyncio
 async def test_create_entity_strips_embedding_from_receipt(mock_service):
     """create_entity receipt must not contain the embedding array."""
-    mock_service.repo.create_node.return_value = {
+    mock_service.repo.create_node = AsyncMock(return_value={
         "id": "123",
         "name": "Test",
         "node_type": "Entity",
         "embedding": [0.1] * 1024,  # THE LEAK
-    }
-    mock_service.repo.get_total_node_count.return_value = 1
-    mock_service.embedder.encode.return_value = [0.1] * 1024
+    })
+    mock_service.repo.get_total_node_count = AsyncMock(return_value=1)
+    mock_service.embedder.async_encode = AsyncMock(return_value=[0.1] * 1024)
 
     # Mock vector upsert (async)
     mock_service.vector_store.upsert = AsyncMock()
-    # Mock lock manager
+    # Mock lock manager with async context manager support
+    mock_lock = MagicMock()
+    mock_lock.__aenter__ = AsyncMock(return_value=mock_lock)
+    mock_lock.__aexit__ = AsyncMock(return_value=False)
     with patch.object(mock_service, "lock_manager", MagicMock()):
-        mock_service.lock_manager.acquire_write = AsyncMock(return_value=True)
-        mock_service.lock_manager.release_write = AsyncMock()
+        mock_service.lock_manager.lock.return_value = mock_lock
         result = await mock_service.create_entity(
             EntityCreateParams(name="Test", node_type="Entity", project_id="test")
         )
@@ -61,14 +72,17 @@ async def test_create_entity_receipt_missing_embedding_key_evil():
     mock_vector = AsyncMock()
     service = MemoryService(embedding_service=mock_embedder, vector_store=mock_vector)
     service.repo = MagicMock()
-    service.repo.create_node.return_value = {"id": "456", "name": "Clean", "node_type": "Entity"}
-    service.repo.get_total_node_count.return_value = 1
-    service.embedder.encode.return_value = [0.1] * 1024
+    service.repo.create_node = AsyncMock(return_value={"id": "456", "name": "Clean", "node_type": "Entity"})
+    service.repo.get_total_node_count = AsyncMock(return_value=1)
+    service.repo.get_most_recent_entity = AsyncMock(return_value=None)
+    service.embedder.async_encode = AsyncMock(return_value=[0.1] * 1024)
     service.vector_store.upsert = AsyncMock()
 
+    mock_lock = MagicMock()
+    mock_lock.__aenter__ = AsyncMock(return_value=mock_lock)
+    mock_lock.__aexit__ = AsyncMock(return_value=False)
     with patch.object(service, "lock_manager", MagicMock()):
-        service.lock_manager.acquire_write = AsyncMock(return_value=True)
-        service.lock_manager.release_write = AsyncMock()
+        service.lock_manager.lock.return_value = mock_lock
         result = await service.create_entity(
             EntityCreateParams(name="Clean", node_type="Entity", project_id="test")
         )
@@ -82,7 +96,7 @@ async def test_create_entity_receipt_missing_embedding_key_evil():
 @pytest.mark.asyncio
 async def test_search_results_have_no_embedding_field(mock_service):
     """search() returns SearchResult models which have no embedding field."""
-    mock_service.embedder.encode.return_value = [0.1] * 1024
+    mock_service.embedder.async_encode = AsyncMock(return_value=[0.1] * 1024)
     mock_service.vector_store.search = AsyncMock(return_value=[{"_id": "123", "_score": 0.9}])
     mock_service.repo.get_subgraph.return_value = {
         "nodes": [
@@ -112,7 +126,7 @@ async def test_search_results_have_no_embedding_field(mock_service):
 @pytest.mark.asyncio
 async def test_get_hologram_strips_embedding(mock_service):
     """get_hologram returns raw dicts — embedding must be popped."""
-    mock_service.embedder.encode.return_value = [0.1] * 1024
+    mock_service.embedder.async_encode = AsyncMock(return_value=[0.1] * 1024)
 
     anchor_mock = MagicMock()
     anchor_mock.id = "1"

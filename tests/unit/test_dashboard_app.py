@@ -68,7 +68,7 @@ def _import_dashboard() -> Any:
     """Dynamically import dashboard.app with mocking in place."""
     with patch.dict(os.environ, {"EMBEDDING_API_URL": "http://mock-api"}):
         with patch("claude_memory.embedding.EmbeddingService"):
-            with patch("claude_memory.repository.FalkorDB"):
+            with patch("falkordb.asyncio.FalkorDB"):
                 with patch("claude_memory.lock_manager.redis.Redis"):
                     # Force reimport
                     if "dashboard.app" in sys.modules:

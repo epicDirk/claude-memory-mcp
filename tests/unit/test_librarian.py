@@ -10,7 +10,9 @@ from claude_memory.librarian import LibrarianAgent
 def mock_memory_service() -> MagicMock:
     service = MagicMock()
     service.repo = MagicMock()
-    service.repo.get_all_nodes = MagicMock()
+    service.repo.get_all_nodes = AsyncMock()
+    service.repo.get_all_edges = AsyncMock(return_value=[])
+    service.repo.create_node = AsyncMock()
     service.consolidate_memories = AsyncMock()
     service.prune_stale = AsyncMock()
     service.clustering = MagicMock()  # Not used by agent instantly, but good to have

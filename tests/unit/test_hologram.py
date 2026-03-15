@@ -11,14 +11,15 @@ from claude_memory.tools import MemoryService
 def mock_service(mock_vector_store: Any) -> Any:
     with (
         patch("claude_memory.embedding.EmbeddingService") as mock_embedder_cls,
-        patch("claude_memory.repository.FalkorDB"),
+        patch("falkordb.asyncio.FalkorDB"),
     ):
         service = MemoryService(
             embedding_service=mock_embedder_cls.return_value, vector_store=mock_vector_store
         )
         # Mock the repository client interactions
         service.repo.client = MagicMock()
-        service.repo.select_graph = MagicMock()
+        service.repo.client.query = AsyncMock()
+        service.repo.select_graph = AsyncMock()
         service.repo.select_graph.return_value = service.repo.client
 
         yield service
@@ -51,7 +52,7 @@ async def test_get_hologram_orchestration(mock_service: Any) -> None:
     ]
 
     # Setup Repository Mock
-    mock_service.repo.get_subgraph = MagicMock()
+    mock_service.repo.get_subgraph = AsyncMock()
     mock_service.repo.get_subgraph.return_value = {
         "nodes": [{"id": "1"}, {"id": "2"}, {"id": "3"}],
         "edges": [{"source": "1", "target": "3"}],
@@ -67,7 +68,8 @@ async def test_get_hologram_orchestration(mock_service: Any) -> None:
     assert len(result["edges"]) == 1
 
 
-def test_repository_get_subgraph_parsing(mock_service: Any) -> None:
+@pytest.mark.asyncio
+async def test_repository_get_subgraph_parsing(mock_service: Any) -> None:
     """Verify get_subgraph parses Cypher result correctly."""
     # Mock the graph.query response
     mock_result_set = MagicMock()
@@ -87,7 +89,7 @@ def test_repository_get_subgraph_parsing(mock_service: Any) -> None:
     mock_service.repo.client.query.return_value = mock_result_set
 
     # Execute
-    result = mock_service.repo.get_subgraph(["1"])
+    result = await mock_service.repo.get_subgraph(["1"])
 
     # Verify
     assert len(result["nodes"]) == 2

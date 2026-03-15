@@ -6,7 +6,7 @@ async context manager, release-on-exception.
 
 from __future__ import annotations
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -115,7 +115,7 @@ class TestProjectLockAsyncCtx:
     """Assert async context manager calls acquire/release."""
 
     async def test_ctx_evil_acquire_called(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Evil: __aenter__ must trigger acquire."""
+        """Evil: __aenter__ must trigger acquire via async Redis client."""
         monkeypatch.delenv("REDIS_HOST", raising=False)
         monkeypatch.delenv("REDIS_PORT", raising=False)
         monkeypatch.delenv("REDIS_PASSWORD", raising=False)
@@ -125,15 +125,18 @@ class TestProjectLockAsyncCtx:
 
         with patch("claude_memory.lock_manager.redis.Redis") as mock_redis:
             mock_redis.return_value.ping.return_value = True
-            mock_redis.return_value.set.return_value = True
-            from claude_memory.lock_manager import LockManager
+            with patch("claude_memory.lock_manager.aioredis.Redis") as mock_aioredis:
+                mock_async_client = AsyncMock()
+                mock_async_client.set.return_value = True
+                mock_aioredis.return_value = mock_async_client
+                from claude_memory.lock_manager import LockManager
 
-            lm = LockManager()
-            async with lm.lock("p1"):
-                mock_redis.return_value.set.assert_called()
+                lm = LockManager()
+                async with lm.lock("p1"):
+                    mock_async_client.set.assert_called()
 
     async def test_ctx_evil_release_called(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Evil: __aexit__ must trigger release (Redis DELETE)."""
+        """Evil: __aexit__ must trigger async_release (async Redis DELETE)."""
         monkeypatch.delenv("REDIS_HOST", raising=False)
         monkeypatch.delenv("REDIS_PORT", raising=False)
         monkeypatch.delenv("REDIS_PASSWORD", raising=False)
@@ -143,13 +146,16 @@ class TestProjectLockAsyncCtx:
 
         with patch("claude_memory.lock_manager.redis.Redis") as mock_redis:
             mock_redis.return_value.ping.return_value = True
-            mock_redis.return_value.set.return_value = True
-            from claude_memory.lock_manager import LockManager
+            with patch("claude_memory.lock_manager.aioredis.Redis") as mock_aioredis:
+                mock_async_client = AsyncMock()
+                mock_async_client.set.return_value = True
+                mock_aioredis.return_value = mock_async_client
+                from claude_memory.lock_manager import LockManager
 
-            lm = LockManager()
-            async with lm.lock("p1"):
-                pass
-            mock_redis.return_value.delete.assert_called()
+                lm = LockManager()
+                async with lm.lock("p1"):
+                    pass
+                mock_async_client.delete.assert_called()
 
     async def test_ctx_evil_release_on_exception(
         self,
@@ -165,14 +171,17 @@ class TestProjectLockAsyncCtx:
 
         with patch("claude_memory.lock_manager.redis.Redis") as mock_redis:
             mock_redis.return_value.ping.return_value = True
-            mock_redis.return_value.set.return_value = True
-            from claude_memory.lock_manager import LockManager
+            with patch("claude_memory.lock_manager.aioredis.Redis") as mock_aioredis:
+                mock_async_client = AsyncMock()
+                mock_async_client.set.return_value = True
+                mock_aioredis.return_value = mock_async_client
+                from claude_memory.lock_manager import LockManager
 
-            lm = LockManager()
-            with pytest.raises(RuntimeError):
-                async with lm.lock("p1"):
-                    raise RuntimeError("boom")
-            mock_redis.return_value.delete.assert_called()
+                lm = LockManager()
+                with pytest.raises(RuntimeError):
+                    async with lm.lock("p1"):
+                        raise RuntimeError("boom")
+                mock_async_client.delete.assert_called()
 
     async def test_ctx_sad_timeout_on_contention(
         self,
@@ -188,14 +197,17 @@ class TestProjectLockAsyncCtx:
 
         with patch("claude_memory.lock_manager.redis.Redis") as mock_redis:
             mock_redis.return_value.ping.return_value = True
-            mock_redis.return_value.set.return_value = False  # always fail
-            from claude_memory.lock_manager import LockManager
+            with patch("claude_memory.lock_manager.aioredis.Redis") as mock_aioredis:
+                mock_async_client = AsyncMock()
+                mock_async_client.set.return_value = False  # always fail
+                mock_aioredis.return_value = mock_async_client
+                from claude_memory.lock_manager import LockManager
 
-            lm = LockManager()
-            with patch("asyncio.sleep"):
-                with pytest.raises(TimeoutError):
-                    async with lm.lock("p1"):
-                        pass
+                lm = LockManager()
+                with patch("claude_memory.lock_manager.asyncio.sleep", new_callable=AsyncMock):
+                    with pytest.raises(TimeoutError):
+                        async with lm.lock("p1"):
+                            pass
 
     async def test_ctx_happy_normal_flow(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Happy: acquire → execute → release completes normally."""
@@ -208,11 +220,14 @@ class TestProjectLockAsyncCtx:
 
         with patch("claude_memory.lock_manager.redis.Redis") as mock_redis:
             mock_redis.return_value.ping.return_value = True
-            mock_redis.return_value.set.return_value = True
-            from claude_memory.lock_manager import LockManager
+            with patch("claude_memory.lock_manager.aioredis.Redis") as mock_aioredis:
+                mock_async_client = AsyncMock()
+                mock_async_client.set.return_value = True
+                mock_aioredis.return_value = mock_async_client
+                from claude_memory.lock_manager import LockManager
 
-            lm = LockManager()
-            executed = False
-            async with lm.lock("p1"):
-                executed = True
-            assert executed
+                lm = LockManager()
+                executed = False
+                async with lm.lock("p1"):
+                    executed = True
+                assert executed

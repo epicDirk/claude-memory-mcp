@@ -1,6 +1,6 @@
 from collections.abc import Generator
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -11,22 +11,31 @@ from claude_memory.tools import MemoryService
 @pytest.fixture
 def memory_service(mock_vector_store: Any) -> Generator[MemoryService, None, None]:
     with (
-        patch("claude_memory.repository.FalkorDB"),
+        patch("falkordb.asyncio.FalkorDB"),
         patch("claude_memory.embedding.EmbeddingService") as mock_embedder_cls,
     ):
+        mock_embedder_cls.return_value.async_encode = AsyncMock(return_value=[0.1] * 1024)
         service = MemoryService(
             embedding_service=mock_embedder_cls.return_value, vector_store=mock_vector_store
         )
-        # Mock the client and graph
-        service.repo.client = MagicMock()
-        service.repo.client.select_graph.return_value = MagicMock()
+        # Mock the repo's select_graph to return a mock graph with async query
+        mock_graph = MagicMock()
+        mock_graph.query = AsyncMock()
+        service.repo.select_graph = AsyncMock(return_value=mock_graph)
+        service.repo._client = MagicMock()  # Prevent real connection attempts
+        # Mock lock_manager for async context manager support
+        mock_lock = MagicMock()
+        mock_lock.__aenter__ = AsyncMock(return_value=mock_lock)
+        mock_lock.__aexit__ = AsyncMock(return_value=False)
+        service.lock_manager = MagicMock()
+        service.lock_manager.lock.return_value = mock_lock
         yield service
 
 
 @pytest.mark.asyncio
 async def test_update_entity_success(memory_service: MemoryService) -> None:
     # Setup mocks
-    graph = memory_service.repo.client.select_graph.return_value
+    graph = memory_service.repo.select_graph.return_value
     # Mock return for the final update query
     mock_result_set = MagicMock()
     # Return a dummy node structure: [[Node(properties={...})]]
@@ -52,7 +61,7 @@ async def test_update_entity_success(memory_service: MemoryService) -> None:
 
 @pytest.mark.asyncio
 async def test_soft_delete_entity(memory_service: MemoryService) -> None:
-    graph = memory_service.repo.client.select_graph.return_value
+    graph = memory_service.repo.select_graph.return_value
     mock_node = MagicMock()
     mock_node.properties = {"id": "123", "deleted": True}
     graph.query.return_value.result_set = [[mock_node]]
@@ -78,7 +87,7 @@ async def test_soft_delete_entity(memory_service: MemoryService) -> None:
 
 @pytest.mark.asyncio
 async def test_hard_delete_entity(memory_service: MemoryService) -> None:
-    graph = memory_service.repo.client.select_graph.return_value
+    graph = memory_service.repo.select_graph.return_value
 
     params = EntityDeleteParams(entity_id="123", reason="Spam", soft_delete=False)
 
@@ -90,7 +99,7 @@ async def test_hard_delete_entity(memory_service: MemoryService) -> None:
 
 @pytest.mark.asyncio
 async def test_add_observation(memory_service: MemoryService) -> None:
-    graph = memory_service.repo.client.select_graph.return_value
+    graph = memory_service.repo.select_graph.return_value
 
     # Return the created observation node
     mock_node = MagicMock()

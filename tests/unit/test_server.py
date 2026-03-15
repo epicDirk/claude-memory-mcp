@@ -69,7 +69,7 @@ MEMORY_TYPE_REQUIRED_PROP = "ingredients"
 
 with patch.dict(os.environ, {"EMBEDDING_API_URL": "http://mock-embedding-api"}):
     with patch("claude_memory.embedding.EmbeddingService"):
-        with patch("claude_memory.repository.FalkorDB"):
+        with patch("falkordb.asyncio.FalkorDB"):
             with patch("claude_memory.lock_manager.redis.Redis"):
                 from claude_memory import server, tools_extra
 

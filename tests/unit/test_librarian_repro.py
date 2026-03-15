@@ -29,6 +29,9 @@ async def test_create_node_signature_produces_error_in_report():
     # Setup mocks
     mock_memory = AsyncMock()
     mock_repo = MagicMock()
+    mock_repo.get_all_nodes = AsyncMock()
+    mock_repo.get_all_edges = AsyncMock()
+    mock_repo.create_node = AsyncMock()
     mock_memory.repo = mock_repo
 
     mock_clustering = MagicMock(spec=ClusteringService)

@@ -23,10 +23,10 @@ def _make_crud_mixin() -> CrudMixin:
 
     # Default happy-path returns
     mixin.ontology.is_valid_type.return_value = True
-    mixin.repo.create_node.return_value = {"id": "test-123", "name": "Test"}
-    mixin.repo.get_most_recent_entity.return_value = None
-    mixin.repo.get_total_node_count.return_value = 42
-    mixin.embedder.encode.return_value = [0.1] * 1024
+    mixin.repo.create_node = AsyncMock(return_value={"id": "test-123", "name": "Test"})
+    mixin.repo.get_most_recent_entity = AsyncMock(return_value=None)
+    mixin.repo.get_total_node_count = AsyncMock(return_value=42)
+    mixin.embedder.async_encode = AsyncMock(return_value=[0.1] * 1024)
 
     # Make the async context manager work
     mixin.lock_manager.lock.return_value = AsyncMock()

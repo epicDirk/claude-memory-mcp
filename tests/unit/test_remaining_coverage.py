@@ -73,6 +73,9 @@ class TestLibrarianAgent:
                 from claude_memory.librarian import LibrarianAgent
 
                 mock_memory = MagicMock()
+                mock_memory.repo.get_all_nodes = AsyncMock(return_value=[])
+                mock_memory.repo.get_all_edges = AsyncMock(return_value=[])
+                mock_memory.repo.create_node = AsyncMock(return_value={})
                 mock_clustering = MagicMock()
                 mock_clustering.min_samples = CLUSTER_MIN_SAMPLES
                 agent = LibrarianAgent(
@@ -422,6 +425,9 @@ class TestLibrarianBranchGaps:
                 from claude_memory.librarian import LibrarianAgent
 
                 mock_memory = MagicMock()
+                mock_memory.repo.get_all_nodes = AsyncMock(return_value=[])
+                mock_memory.repo.get_all_edges = AsyncMock(return_value=[])
+                mock_memory.repo.create_node = AsyncMock(return_value={})
                 mock_clustering = MagicMock()
                 mock_clustering.min_samples = CLUSTER_MIN_SAMPLES
                 return LibrarianAgent(
@@ -503,10 +509,12 @@ class TestAsyncLockManager:
 
         with patch("claude_memory.lock_manager.redis.Redis") as mock_redis:
             mock_redis.return_value.ping.return_value = True
-            mock_redis.return_value.set.return_value = True
             mgr = LockManager()
 
-        result = await mgr.async_acquire(LOCK_PROJECT_ID, timeout=LOCK_TIMEOUT)
+        mock_async_client = AsyncMock()
+        mock_async_client.set.return_value = True
+        with patch("claude_memory.lock_manager.aioredis.Redis", return_value=mock_async_client):
+            result = await mgr.async_acquire(LOCK_PROJECT_ID, timeout=LOCK_TIMEOUT)
         assert result is True
 
     async def test_async_acquire_redis_timeout(self) -> None:
@@ -515,21 +523,23 @@ class TestAsyncLockManager:
 
         with patch("claude_memory.lock_manager.redis.Redis") as mock_redis:
             mock_redis.return_value.ping.return_value = True
-            mock_redis.return_value.set.return_value = False
             mgr = LockManager()
 
-        with patch("claude_memory.lock_manager.time") as mock_time:
-            call_count = 0
+        mock_async_client = AsyncMock()
+        mock_async_client.set.return_value = False
+        with patch("claude_memory.lock_manager.aioredis.Redis", return_value=mock_async_client):
+            with patch("claude_memory.lock_manager.time") as mock_time:
+                call_count = 0
 
-            def fake_time() -> float:
-                nonlocal call_count
-                call_count += 1
-                return 0.0 if call_count <= 2 else 999.0
+                def fake_time() -> float:
+                    nonlocal call_count
+                    call_count += 1
+                    return 0.0 if call_count <= 2 else 999.0
 
-            mock_time.time = fake_time
-            with patch("claude_memory.lock_manager.asyncio.sleep", new_callable=AsyncMock):
-                result = await mgr._async_acquire_redis(LOCK_PROJECT_ID, timeout=1)
-                assert result is False
+                mock_time.time = fake_time
+                with patch("claude_memory.lock_manager.asyncio.sleep", new_callable=AsyncMock):
+                    result = await mgr._async_acquire_redis(LOCK_PROJECT_ID, timeout=1)
+                    assert result is False
 
     async def test_async_acquire_file_success(self, tmp_path: Any) -> None:
         """Async file lock acquisition succeeds."""
@@ -549,13 +559,14 @@ class TestAsyncLockManager:
 
         mock_manager = MagicMock()
         mock_manager.async_acquire = AsyncMock(return_value=True)
+        mock_manager.async_release = AsyncMock()
         lock = ProjectLock(mock_manager, LOCK_PROJECT_ID)
 
         async with lock:
             pass  # Lock acquired
 
         mock_manager.async_acquire.assert_called_once_with(LOCK_PROJECT_ID, 5)
-        mock_manager.release.assert_called_once_with(LOCK_PROJECT_ID)
+        mock_manager.async_release.assert_called_once_with(LOCK_PROJECT_ID)
 
     async def test_async_context_manager_timeout(self) -> None:
         """ProjectLock async context manager raises TimeoutError on failure."""
@@ -563,6 +574,7 @@ class TestAsyncLockManager:
 
         mock_manager = MagicMock()
         mock_manager.async_acquire = AsyncMock(return_value=False)
+        mock_manager.async_release = AsyncMock()
         lock = ProjectLock(mock_manager, LOCK_PROJECT_ID)
 
         with pytest.raises(TimeoutError, match=LOCK_PROJECT_ID):

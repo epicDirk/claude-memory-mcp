@@ -11,7 +11,7 @@ import pytest
 
 # ─── Module Import (patch infra before import) ──────────────────────
 
-with patch("claude_memory.repository.FalkorDB"):
+with patch("falkordb.asyncio.FalkorDB"):
     with patch("claude_memory.lock_manager.redis.Redis"):
         with patch("claude_memory.vector_store.AsyncQdrantClient"):
             from claude_memory import tools_extra

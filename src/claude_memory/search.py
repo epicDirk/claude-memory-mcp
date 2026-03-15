@@ -367,11 +367,11 @@ class SearchMixin(SearchAdvancedMixin):
 
         seed_ids = [vr["_id"] for vr in vector_results]
         activation_map = self.activation_engine.activate(seed_ids)
-        spread_map = self.activation_engine.spread(activation_map, decay=0.6, max_hops=3)
+        spread_map = await self.activation_engine.spread(activation_map, decay=0.6, max_hops=3)
 
         # Gather all activated entity IDs
         all_ids = list(set(seed_ids) | set(spread_map.keys()))
-        graph_data = self.repo.get_subgraph(all_ids, depth=0)
+        graph_data = await self.repo.get_subgraph(all_ids, depth=0)
 
         return [
             {"id": n.get("id", ""), **n}
@@ -439,7 +439,7 @@ class SearchMixin(SearchAdvancedMixin):
 
         ids = [m.entity_id for m in merged]
         graph_depth = 1 if deep else 0
-        graph_data = self.repo.get_subgraph(ids, depth=graph_depth)
+        graph_data = await self.repo.get_subgraph(ids, depth=graph_depth)
         nodes_map = {n["id"]: n for n in graph_data["nodes"]}
 
         # Fire-and-forget salience update
@@ -452,7 +452,7 @@ class SearchMixin(SearchAdvancedMixin):
             if not node_props:
                 continue
 
-            observations, relationships = self._deep_hydrate_node(m.entity_id, graph_data, deep)
+            observations, relationships = await self._deep_hydrate_node(m.entity_id, graph_data, deep)
 
             # Determine retrieval strategy label
             if len(m.retrieval_sources) > 1:

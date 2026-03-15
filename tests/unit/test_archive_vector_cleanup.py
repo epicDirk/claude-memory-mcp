@@ -15,6 +15,7 @@ def _make_analysis_mixin() -> AnalysisMixin:
     """Build an AnalysisMixin with all dependencies mocked."""
     mixin = AnalysisMixin.__new__(AnalysisMixin)
     mixin.repo = MagicMock()
+    mixin.repo.update_node = AsyncMock()
     mixin.embedder = MagicMock()
     mixin.vector_store = AsyncMock()
     mixin.ontology = MagicMock()
@@ -25,7 +26,7 @@ def _make_analysis_mixin() -> AnalysisMixin:
 async def test_archive_entity_deletes_qdrant_vector() -> None:
     """Archiving an entity deletes its Qdrant vector."""
     mixin = _make_analysis_mixin()
-    mixin.repo.update_node.return_value = {"id": "ent-1", "status": "archived"}
+    mixin.repo.update_node = AsyncMock(return_value={"id": "ent-1", "status": "archived"})
 
     result = await mixin.archive_entity("ent-1")
 
@@ -57,7 +58,7 @@ async def test_archive_entity_vector_deleted_before_graph_update() -> None:
         return {"id": entity_id, "status": "archived"}
 
     mixin.vector_store.delete.side_effect = track_delete
-    mixin.repo.update_node.side_effect = track_update
+    mixin.repo.update_node = AsyncMock(side_effect=track_update)
 
     await mixin.archive_entity("ent-1")
 

@@ -8,6 +8,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Async Migration (Phase 1-6)** — All synchrone blocking calls migrated to
+  native async, fixing event loop blocking that caused 108-minute hangs:
+  - `falkordb.asyncio.FalkorDB` for graph queries (~35 call sites)
+  - `httpx.AsyncClient` for embedding API (4.2x faster per call)
+  - `redis.asyncio.Redis` for lock manager
+  - 15 source files changed, 47 `await` calls added across 9 service files
+  - 3 missing `await`s in `search.py` caught by test suite (production bug fix)
+
+- **Windows IPv6 DNS fix (Phase 6b)** — `localhost` DNS on Windows tries IPv6
+  (`::1`) before IPv4, adding ~2s delay per connection. All host defaults
+  changed to `127.0.0.1`.
+
+- **Test Suite AsyncMock Migration (Phase 7)** — Migrated ~40 test files from
+  `MagicMock` to `AsyncMock` for async repository/embedder/lock methods.
+  FalkorDB patch path updated (`falkordb.asyncio.FalkorDB`), host assertions
+  updated to `127.0.0.1`. All 963 tests pass.
+
 ### Added
 
 - **DRIFT Detection Suite** — Behavioural and structural drift detection:

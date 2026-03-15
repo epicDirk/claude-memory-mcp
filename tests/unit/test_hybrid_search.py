@@ -31,16 +31,18 @@ def service():
     """MemoryService with all deps mocked."""
     mock_embedder = MagicMock()
     mock_embedder.encode.return_value = MOCK_EMBEDDING
+    mock_embedder.async_encode = AsyncMock(return_value=MOCK_EMBEDDING)
 
-    with patch("claude_memory.repository.FalkorDB"):
+    with patch("falkordb.asyncio.FalkorDB"):
         with patch("claude_memory.lock_manager.redis.Redis"):
             with patch("claude_memory.vector_store.AsyncQdrantClient"):
                 from claude_memory.tools import MemoryService
 
                 svc = MemoryService(embedding_service=mock_embedder)
 
-    svc.repo = MagicMock()
+    svc.repo = AsyncMock()
     svc.activation_engine.repo = svc.repo
+    svc.activation_engine.spread = AsyncMock(return_value={})
     svc.vector_store = AsyncMock()
     svc.router = MagicMock(spec=QueryRouter)
     return svc
@@ -131,7 +133,7 @@ class TestHybridSearchPipeline:
 
         # Mock the activation engine methods
         service.activation_engine.activate = MagicMock(return_value={"a": 1.0, "b": 1.0})
-        service.activation_engine.spread = MagicMock(return_value={"a": 1.0, "b": 0.6, "c": 0.3})
+        service.activation_engine.spread = AsyncMock(return_value={"a": 1.0, "b": 0.6, "c": 0.3})
         service.repo.get_subgraph.return_value = _graph_nodes("a", "b", "c")
 
         results = await service.search("things related to auth")

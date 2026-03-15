@@ -26,7 +26,7 @@ NOW_ISO = datetime.now(UTC).isoformat()
 
 # ─── Module Imports (patch external deps) ───────────────────────────
 
-with patch("claude_memory.repository.FalkorDB"):
+with patch("falkordb.asyncio.FalkorDB"):
     with patch("claude_memory.lock_manager.redis.Redis"):
         with patch("claude_memory.vector_store.AsyncQdrantClient"):
             from claude_memory.tools import MemoryService
@@ -40,14 +40,17 @@ def service() -> MemoryService:
     """MemoryService with all deps mocked."""
     mock_embedder = MagicMock()
     mock_embedder.encode.return_value = MOCK_EMBEDDING
+    mock_embedder.async_encode = AsyncMock(return_value=MOCK_EMBEDDING)
 
-    with patch("claude_memory.repository.FalkorDB"):
+    with patch("falkordb.asyncio.FalkorDB"):
         with patch("claude_memory.lock_manager.redis.Redis"):
             with patch("claude_memory.vector_store.AsyncQdrantClient"):
                 svc = MemoryService(embedding_service=mock_embedder)
 
     svc.repo = MagicMock()
+    svc.repo.get_subgraph = AsyncMock()
     svc.activation_engine.repo = svc.repo  # sync so spread() uses same mock
+    svc.activation_engine.repo.get_subgraph = AsyncMock()
     svc.vector_store = AsyncMock()
     return svc
 

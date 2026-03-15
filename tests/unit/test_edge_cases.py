@@ -73,6 +73,9 @@ class TestLibrarianAgent:
                 from claude_memory.librarian import LibrarianAgent
 
                 mock_memory = MagicMock()
+                mock_memory.repo.get_all_nodes = AsyncMock(return_value=[])
+                mock_memory.repo.get_all_edges = AsyncMock(return_value=[])
+                mock_memory.repo.create_node = AsyncMock()
                 mock_clustering = MagicMock()
                 mock_clustering.min_samples = CLUSTER_MIN_SAMPLES
                 agent = LibrarianAgent(
@@ -83,7 +86,7 @@ class TestLibrarianAgent:
 
     async def test_run_cycle_fetch_exception(self, librarian: Any) -> None:
         """Lines 46-49: fetch throws, returns early with error."""
-        librarian.memory.repo.get_all_nodes.side_effect = ConnectionError(LIBRARIAN_FETCH_ERROR)
+        librarian.memory.repo.get_all_nodes = AsyncMock(side_effect=ConnectionError(LIBRARIAN_FETCH_ERROR))
         report = await librarian.run_cycle()
         assert LIBRARIAN_FETCH_ERROR in report["errors"][0]
         assert report["clusters_found"] == 0
@@ -95,7 +98,7 @@ class TestLibrarianAgent:
             {"id": LIBRARIAN_NODE_ID_2, "name": LIBRARIAN_NODE_NAME_2},
             {"id": LIBRARIAN_NODE_ID_3, "name": LIBRARIAN_NODE_NAME_3},
         ]
-        librarian.memory.repo.get_all_nodes.return_value = nodes
+        librarian.memory.repo.get_all_nodes = AsyncMock(return_value=nodes)
 
         from claude_memory.clustering import Cluster
 
@@ -125,7 +128,7 @@ class TestLibrarianAgent:
             {"id": LIBRARIAN_NODE_ID_2, "name": LIBRARIAN_NODE_NAME_2},
             {"id": LIBRARIAN_NODE_ID_3, "name": LIBRARIAN_NODE_NAME_3},
         ]
-        librarian.memory.repo.get_all_nodes.return_value = nodes
+        librarian.memory.repo.get_all_nodes = AsyncMock(return_value=nodes)
         librarian.clustering.cluster_nodes.return_value = []
         librarian.memory.prune_stale = AsyncMock(side_effect=ConnectionError(LIBRARIAN_PRUNE_ERROR))
 
@@ -139,7 +142,7 @@ class TestLibrarianAgent:
             {"id": LIBRARIAN_NODE_ID_2, "name": LIBRARIAN_NODE_NAME_2},
             {"id": LIBRARIAN_NODE_ID_3, "name": LIBRARIAN_NODE_NAME_3},
         ]
-        librarian.memory.repo.get_all_nodes.return_value = nodes
+        librarian.memory.repo.get_all_nodes = AsyncMock(return_value=nodes)
 
         from claude_memory.clustering import Cluster
 
@@ -385,6 +388,9 @@ class TestLibrarianBranchGaps:
                 from claude_memory.librarian import LibrarianAgent
 
                 mock_memory = MagicMock()
+                mock_memory.repo.get_all_nodes = AsyncMock(return_value=[])
+                mock_memory.repo.get_all_edges = AsyncMock(return_value=[])
+                mock_memory.repo.create_node = AsyncMock()
                 mock_clustering = MagicMock()
                 mock_clustering.min_samples = CLUSTER_MIN_SAMPLES
                 return LibrarianAgent(
@@ -399,7 +405,7 @@ class TestLibrarianBranchGaps:
             {"id": LIBRARIAN_NODE_ID_2, "name": LIBRARIAN_NODE_NAME_2},
             {"id": LIBRARIAN_NODE_ID_3, "name": LIBRARIAN_NODE_NAME_3},
         ]
-        librarian.memory.repo.get_all_nodes.return_value = nodes
+        librarian.memory.repo.get_all_nodes = AsyncMock(return_value=nodes)
 
         from claude_memory.clustering import Cluster
 
@@ -512,13 +518,14 @@ class TestAsyncLockManager:
 
         mock_manager = MagicMock()
         mock_manager.async_acquire = AsyncMock(return_value=True)
+        mock_manager.async_release = AsyncMock()
         lock = ProjectLock(mock_manager, LOCK_PROJECT_ID)
 
         async with lock:
             pass  # Lock acquired
 
         mock_manager.async_acquire.assert_called_once_with(LOCK_PROJECT_ID, 5)
-        mock_manager.release.assert_called_once_with(LOCK_PROJECT_ID)
+        mock_manager.async_release.assert_called_once_with(LOCK_PROJECT_ID)
 
     async def test_async_context_manager_timeout(self) -> None:
         """ProjectLock async context manager raises TimeoutError on failure."""
