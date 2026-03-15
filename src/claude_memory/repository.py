@@ -1,11 +1,9 @@
 """FalkorDB data access layer — Cypher queries, node/edge CRUD, and index management."""
 
+import asyncio
 import logging
 import os
-import time
 from typing import Any
-
-from falkordb import FalkorDB
 
 from claude_memory.repository_queries import RepositoryQueryMixin
 from claude_memory.repository_traversal import RepositoryTraversalMixin
@@ -21,28 +19,37 @@ class MemoryRepository(RepositoryQueryMixin, RepositoryTraversalMixin):
     """
     Data Access Layer for FalkorDB.
     Handles all direct database interactions, Cypher queries, and Index management.
+
+    Uses lazy async initialization — the connection is established on first use,
+    not in the constructor, to avoid blocking the event loop.
     """
 
     def __init__(
         self, host: str | None = None, port: int | None = None, password: str | None = None
     ) -> None:
-        """Connect to FalkorDB using host, port, and password from args or env vars."""
-        self.host = host or os.getenv("FALKORDB_HOST", "localhost")
+        """Store connection params. Connection is established lazily on first use."""
+        self.host = host or os.getenv("FALKORDB_HOST", "127.0.0.1")
         self.port = port or int(os.getenv("FALKORDB_PORT", "6379"))
         self.password = password or os.getenv("FALKORDB_PASSWORD")
 
-        self.client = self._connect_with_retry()
+        self._client: Any = None
         self.graph_name = "claude_memory"
 
-    def _connect_with_retry(self) -> FalkorDB:
-        """Attempt to connect to FalkorDB with retry on transient failures."""
+    async def _ensure_connected(self) -> Any:
+        """Lazy async connection with retry. Returns the FalkorDB client."""
+        if self._client is not None:
+            return self._client
+
+        from falkordb.asyncio import FalkorDB  # noqa: PLC0415
+
         for attempt in range(_CONSTRUCTOR_MAX_RETRIES):
             try:
-                return FalkorDB(
+                self._client = FalkorDB(
                     host=self.host,
                     port=self.port,
                     password=self.password,
                 )
+                return self._client
             except (ConnectionError, TimeoutError, OSError) as exc:
                 if attempt == _CONSTRUCTOR_MAX_RETRIES - 1:
                     logger.error(
@@ -59,30 +66,26 @@ class MemoryRepository(RepositoryQueryMixin, RepositoryTraversalMixin):
                     delay,
                     exc,
                 )
-                time.sleep(delay)
+                await asyncio.sleep(delay)
         raise ConnectionError("FalkorDB connection exhausted retries")  # pragma: no cover
 
     @retry_on_transient()
-    def select_graph(self) -> Any:
+    async def select_graph(self) -> Any:
         """Return the active FalkorDB graph handle."""
-        return self.client.select_graph(self.graph_name)
+        client = await self._ensure_connected()
+        return client.select_graph(self.graph_name)
 
     def ensure_indices(self) -> None:
         """Create necessary indices if they don't exist."""
-        # No longer manages vector indices.
-        # Could add index on 'id' or 'name' for speed if not implicit in Node Key.
         pass
 
     @retry_on_transient()
-    def create_node(self, label: str, properties: dict[str, Any]) -> dict[str, Any]:
+    async def create_node(self, label: str, properties: dict[str, Any]) -> dict[str, Any]:
         """Creates a node (embedding logic moved to VectorStore)."""
-        graph = self.select_graph()
+        graph = await self.select_graph()
         props = properties.copy()
 
-        # Build query
         params: dict[str, Any] = {"props": props}
-
-        # MERGE to prevent duplicates
         params["name"] = props.get("name")
         params["project_id"] = props.get("project_id")
         params["updated_at"] = props.get("updated_at")
@@ -94,15 +97,15 @@ class MemoryRepository(RepositoryQueryMixin, RepositoryTraversalMixin):
         RETURN n
         """
 
-        result = graph.query(query, params)
+        result = await graph.query(query, params)
         return result.result_set[0][0].properties  # type: ignore[no-any-return]
 
     @retry_on_transient()
-    def get_node(self, node_id: str) -> dict[str, Any] | None:
+    async def get_node(self, node_id: str) -> dict[str, Any] | None:
         """Retrieves a node by its ID."""
-        graph = self.select_graph()
+        graph = await self.select_graph()
         query = "MATCH (n) WHERE n.id = $id RETURN n"
-        result = graph.query(query, {"id": node_id})
+        result = await graph.query(query, {"id": node_id})
 
         if not result.result_set:
             return None
@@ -110,9 +113,9 @@ class MemoryRepository(RepositoryQueryMixin, RepositoryTraversalMixin):
         return result.result_set[0][0].properties  # type: ignore[no-any-return]
 
     @retry_on_transient()
-    def update_node(self, node_id: str, properties: dict[str, Any]) -> dict[str, Any]:
+    async def update_node(self, node_id: str, properties: dict[str, Any]) -> dict[str, Any]:
         """Updates a node's properties."""
-        graph = self.select_graph()
+        graph = await self.select_graph()
         props = properties.copy()
 
         query_parts = []
@@ -123,34 +126,34 @@ class MemoryRepository(RepositoryQueryMixin, RepositoryTraversalMixin):
         query = "\n".join(query_parts)
         params = {"id": node_id, "props": props}
 
-        result = graph.query(query, params)
+        result = await graph.query(query, params)
         if not result.result_set:
             return {}
         return result.result_set[0][0].properties  # type: ignore[no-any-return]
 
-    def delete_node(
+    async def delete_node(
         self, node_id: str, soft_delete: bool = False, reason: str | None = None
     ) -> bool:
         """Deletes a node (hard or soft)."""
-        graph = self.select_graph()
+        graph = await self.select_graph()
 
         if soft_delete:
             query = (
                 "MATCH (n) WHERE n.id = $id SET n.deleted = true, "
                 "n.deletion_reason = $reason RETURN n"
             )
-            res = graph.query(query, {"id": node_id, "reason": reason})
+            res = await graph.query(query, {"id": node_id, "reason": reason})
             return bool(res.result_set)
         else:
             query = "MATCH (n) WHERE n.id = $id DETACH DELETE n"
-            graph.query(query, {"id": node_id})
+            await graph.query(query, {"id": node_id})
             return True
 
-    def create_edge(
+    async def create_edge(
         self, from_id: str, to_id: str, relation_type: str, properties: dict[str, Any]
     ) -> dict[str, Any]:
         """Creates a relationship between two nodes."""
-        graph = self.select_graph()
+        graph = await self.select_graph()
 
         query = f"""
         MATCH (a), (b)
@@ -159,20 +162,20 @@ class MemoryRepository(RepositoryQueryMixin, RepositoryTraversalMixin):
         SET r = $props
         RETURN r
         """
-        result = graph.query(query, {"from": from_id, "to": to_id, "props": properties})
+        result = await graph.query(query, {"from": from_id, "to": to_id, "props": properties})
         if not result.result_set:
             return {}
         return result.result_set[0][0].properties  # type: ignore[no-any-return]
 
-    def delete_edge(self, edge_id: str) -> bool:
+    async def delete_edge(self, edge_id: str) -> bool:
         """Deletes a relationship by ID."""
-        graph = self.select_graph()
+        graph = await self.select_graph()
         query = "MATCH ()-[r]->() WHERE r.id = $id DELETE r"
-        graph.query(query, {"id": edge_id})
+        await graph.query(query, {"id": edge_id})
         return True
 
     @retry_on_transient()
-    def execute_cypher(self, query: str, params: dict[str, Any] | None = None) -> Any:
+    async def execute_cypher(self, query: str, params: dict[str, Any] | None = None) -> Any:
         """Executes a raw Cypher query."""
-        graph = self.select_graph()
-        return graph.query(query, params or {})
+        graph = await self.select_graph()
+        return await graph.query(query, params or {})

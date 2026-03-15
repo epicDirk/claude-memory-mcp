@@ -1,10 +1,11 @@
 {
   "mcpServers": {
     "claude-memory": {
-      "command": "powershell.exe",
-      "args": ["-ExecutionPolicy", "Bypass", "-File", "${PROJECT_ROOT}\\scripts\\run_mcp_server.ps1"],
+      "command": "python",
+      "args": ["-m", "claude_memory.server"],
+      "cwd": "C:\\Users\\DEIN_USER\\Documents\\Dragon Brain",
       "env": {
-        "PYTHONPATH": "${PROJECT_ROOT}\\src",
+        "PYTHONPATH": "C:\\Users\\DEIN_USER\\Documents\\Dragon Brain\\src",
         "FALKORDB_HOST": "localhost",
         "FALKORDB_PORT": "6379",
         "FALKORDB_PASSWORD": "",

@@ -36,7 +36,7 @@ class AnalysisMaintenanceMixin:
         Deletes Qdrant vector BEFORE graph update to prevent ghost search results.
         """
         await self.vector_store.delete(entity_id)
-        return self.repo.update_node(entity_id, {"status": "archived"})  # type: ignore[no-any-return]
+        return await self.repo.update_node(entity_id, {"status": "archived"})  # type: ignore[no-any-return]
 
     async def prune_stale(self, days: int = 30) -> dict[str, Any]:
         """Hard delete archived entities older than N days.
@@ -52,7 +52,7 @@ class AnalysisMaintenanceMixin:
         WHERE n.status = 'archived' AND n.archived_at < $cutoff
         RETURN n.id
         """
-        res = self.repo.execute_cypher(select_query, {"cutoff": cutoff})
+        res = await self.repo.execute_cypher(select_query, {"cutoff": cutoff})
         entity_ids = [row[0] for row in res.result_set] if res.result_set else []
 
         if not entity_ids:
@@ -69,7 +69,7 @@ class AnalysisMaintenanceMixin:
         DETACH DELETE n
         RETURN count(n) as deleted_count
         """
-        del_res = self.repo.execute_cypher(delete_query, {"cutoff": cutoff})
+        del_res = await self.repo.execute_cypher(delete_query, {"cutoff": cutoff})
         count = del_res.result_set[0][0] if del_res.result_set else 0
         return {"status": "success", "deleted_count": count}
 
@@ -88,7 +88,7 @@ class AnalysisMaintenanceMixin:
 
         # Compute embedding
         text_to_embed = f"{params.name} {params.node_type} {summary}"
-        embedding = self.embedder.encode(text_to_embed)
+        embedding = await self.embedder.async_encode(text_to_embed)
 
         props = params.properties.copy()
         props.update(
@@ -102,7 +102,7 @@ class AnalysisMaintenanceMixin:
         )
 
         # 1. Write Graph
-        new_node_props = self.repo.create_node("Concept", props)
+        new_node_props = await self.repo.create_node("Concept", props)
 
         # 2. Write Vector
         payload = {
@@ -120,10 +120,10 @@ class AnalysisMaintenanceMixin:
                     "confidence": 1.0,
                     "created_at": datetime.now(UTC).isoformat(),
                 }
-                self.repo.create_edge(old_id, new_id, "PART_OF", link_props)
+                await self.repo.create_edge(old_id, new_id, "PART_OF", link_props)
 
                 # Archive old
-                self.repo.update_node(
+                await self.repo.update_node(
                     old_id,
                     {"status": "archived", "archived_at": datetime.now(UTC).isoformat()},
                 )

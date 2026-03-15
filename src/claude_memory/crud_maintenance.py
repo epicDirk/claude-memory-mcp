@@ -33,7 +33,7 @@ class CrudMaintenanceMixin:
         async def _do_update() -> None:
             """Execute the salience increment in the background."""
             try:
-                self.repo.increment_salience(ids)
+                await self.repo.increment_salience(ids)
             except (ConnectionError, TimeoutError, OSError) as exc:
                 logger.error("Background salience update failed: %s", exc)
 
@@ -76,7 +76,7 @@ class CrudMaintenanceMixin:
             "evidence": params.evidence,
             "timestamp": timestamp,
         }
-        res = self.repo.execute_cypher(query, params_dict)
+        res = await self.repo.execute_cypher(query, params_dict)
         if not res.result_set:
             return {"error": "Entity not found"}
 
@@ -84,7 +84,7 @@ class CrudMaintenanceMixin:
 
         # E-3: Embed observation content into vector store
         try:
-            embedding = self.embedder.encode(params.content)
+            embedding = await self.embedder.async_encode(params.content)
             payload = {
                 "name": params.content[:80],
                 "node_type": "Observation",

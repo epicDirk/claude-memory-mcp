@@ -45,7 +45,7 @@ class SearchMixin(SearchAdvancedMixin):
         SKIP $offset
         LIMIT $limit
         """
-        res = self.repo.execute_cypher(
+        res = await self.repo.execute_cypher(
             query, {"entity_id": entity_id, "limit": limit, "offset": offset}
         )
         nodes = [row[0].properties for row in res.result_set if row]
@@ -82,7 +82,7 @@ class SearchMixin(SearchAdvancedMixin):
         RETURN p
         """
         try:
-            res = self.repo.execute_cypher(fwd_query, params)
+            res = await self.repo.execute_cypher(fwd_query, params)
             path_data = _extract_path(res)
             if path_data:
                 return path_data
@@ -96,7 +96,7 @@ class SearchMixin(SearchAdvancedMixin):
         WITH shortestPath((b)-[*..10]->(a)) AS p
         RETURN p
         """
-        res = self.repo.execute_cypher(rev_query, params)
+        res = await self.repo.execute_cypher(rev_query, params)
         path_data = _extract_path(res)
         if path_data:
             path_data.reverse()
@@ -113,7 +113,7 @@ class SearchMixin(SearchAdvancedMixin):
         RETURN distinct m
         LIMIT $limit
         """
-        res = self.repo.execute_cypher(query, {"entity_id": entity_id, "limit": limit})
+        res = await self.repo.execute_cypher(query, {"entity_id": entity_id, "limit": limit})
         nodes = [row[0].properties for row in res.result_set if row]
         for n in nodes:
             n.pop("embedding", None)
@@ -126,7 +126,7 @@ class SearchMixin(SearchAdvancedMixin):
         RETURN o
         ORDER BY o.created_at DESC
         """
-        res = self.repo.execute_cypher(query, {"entity_id": entity_id})
+        res = await self.repo.execute_cypher(query, {"entity_id": entity_id})
         nodes = [row[0].properties for row in res.result_set if row]
         for n in nodes:
             n.pop("embedding", None)
@@ -134,7 +134,7 @@ class SearchMixin(SearchAdvancedMixin):
 
     async def point_in_time_query(self, query_text: str, as_of: str) -> list[dict[str, Any]]:
         """Execute a search considering only knowledge known before `as_of`."""
-        vec = self.embedder.encode(query_text)
+        vec = await self.embedder.async_encode(query_text)
 
         # Use VectorStore with time filter
         vector_results = await self.vector_store.search(
@@ -146,7 +146,7 @@ class SearchMixin(SearchAdvancedMixin):
 
         # Hydrate from Graph
         ids = [item["_id"] for item in vector_results]
-        graph_data = self.repo.get_subgraph(ids, depth=0)
+        graph_data = await self.repo.get_subgraph(ids, depth=0)
 
         # Flatten
         nodes = list(graph_data["nodes"])
@@ -184,7 +184,7 @@ class SearchMixin(SearchAdvancedMixin):
             if not vector_results:
                 return []
 
-            return self._hydrate_search_results(vector_results, deep)
+            return await self._hydrate_search_results(vector_results, deep)
         except (ConnectionError, TimeoutError, OSError, ValueError):
             logger.error("search failed for query=%r", query, exc_info=True)
             return []
@@ -233,7 +233,7 @@ class SearchMixin(SearchAdvancedMixin):
         mmr: bool,
     ) -> list[dict[str, Any]]:
         """Embed query and search Qdrant (standard or MMR)."""
-        vec = self.embedder.encode(query)
+        vec = await self.embedder.async_encode(query)
 
         search_filter: dict[str, Any] | None = None
         if project_id:
@@ -245,7 +245,7 @@ class SearchMixin(SearchAdvancedMixin):
             vector=vec, limit=limit, filter=search_filter, offset=offset
         )
 
-    def _hydrate_search_results(
+    async def _hydrate_search_results(
         self,
         vector_results: list[dict[str, Any]],
         deep: bool,
@@ -256,7 +256,7 @@ class SearchMixin(SearchAdvancedMixin):
         ids = [item["_id"] for item in vector_results]
 
         graph_depth = 1 if deep else 0
-        graph_data = self.repo.get_subgraph(ids, depth=graph_depth)
+        graph_data = await self.repo.get_subgraph(ids, depth=graph_depth)
         nodes_map = {n["id"]: n for n in graph_data["nodes"]}
 
         # Fire-and-forget salience update (non-blocking)
@@ -270,7 +270,7 @@ class SearchMixin(SearchAdvancedMixin):
                 continue
 
             node_props = nodes_map[node_id]
-            observations, relationships = self._deep_hydrate_node(node_id, graph_data, deep)
+            observations, relationships = await self._deep_hydrate_node(node_id, graph_data, deep)
 
             results.append(
                 SearchResult(
@@ -291,7 +291,7 @@ class SearchMixin(SearchAdvancedMixin):
             )
         return results
 
-    def _deep_hydrate_node(
+    async def _deep_hydrate_node(
         self,
         node_id: str,
         graph_data: dict[str, Any],
@@ -305,7 +305,7 @@ class SearchMixin(SearchAdvancedMixin):
             "MATCH (e:Entity {id: $eid})-[:HAS_OBSERVATION]->(o) "
             "RETURN o.content ORDER BY o.created_at ASC"
         )
-        obs_res = self.repo.execute_cypher(obs_query, {"eid": node_id})
+        obs_res = await self.repo.execute_cypher(obs_query, {"eid": node_id})
         observations = [row[0] for row in obs_res.result_set if row[0]]
         relationships = [
             e for e in graph_data["edges"] if e.get("src") == node_id or e.get("dst") == node_id

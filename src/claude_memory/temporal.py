@@ -56,7 +56,7 @@ class TemporalMixin:
         )
         RETURN s
         """
-        res = self.repo.execute_cypher(
+        res = await self.repo.execute_cypher(
             query,
             {
                 "props": props,
@@ -78,7 +78,7 @@ class TemporalMixin:
         SET s.outcomes = $outcomes
         RETURN s
         """
-        res = self.repo.execute_cypher(
+        res = await self.repo.execute_cypher(
             query,
             {
                 "session_id": params.session_id,
@@ -104,9 +104,9 @@ class TemporalMixin:
             "created_at": datetime.now(UTC).isoformat(),
             "node_type": "Breakthrough",
         }
-        res = self.repo.create_node("Breakthrough", props)
+        res = await self.repo.create_node("Breakthrough", props)
         if params.session_id:
-            self.repo.create_edge(params.session_id, b_id, "BREAKTHROUGH_IN", {"confidence": 1.0})
+            await self.repo.create_edge(params.session_id, b_id, "BREAKTHROUGH_IN", {"confidence": 1.0})
 
         return res  # type: ignore[no-any-return]
 
@@ -115,7 +115,7 @@ class TemporalMixin:
         params: "TemporalQueryParams",
     ) -> list[dict[str, Any]]:
         """Fetch entities within a time window, ordered by occurred_at."""
-        return self.repo.query_timeline(  # type: ignore[no-any-return]
+        return await self.repo.query_timeline(  # type: ignore[no-any-return]
             start=params.start.isoformat(),
             end=params.end.isoformat(),
             limit=params.limit,
@@ -129,7 +129,7 @@ class TemporalMixin:
         limit: int = 10,
     ) -> list[dict[str, Any]]:
         """Find entities connected by temporal edges."""
-        return self.repo.get_temporal_neighbors(  # type: ignore[no-any-return]
+        return await self.repo.get_temporal_neighbors(  # type: ignore[no-any-return]
             entity_id=entity_id,
             direction=direction,
             limit=limit,
@@ -140,7 +140,7 @@ class TemporalMixin:
         params: "BottleQueryParams",
     ) -> list[dict[str, Any]]:
         """Query 'Bottle' entities (messages to future self)."""
-        bottles = self.repo.get_bottles(
+        bottles = await self.repo.get_bottles(
             limit=params.limit,
             search_text=params.search_text,
             before_date=params.before_date.isoformat() if params.before_date else None,
@@ -155,7 +155,7 @@ class TemporalMixin:
                 RETURN o.content
                 ORDER BY o.created_at ASC
                 """
-                result = self.repo.execute_cypher(obs_query, {"eid": bottle["id"]})
+                result = await self.repo.execute_cypher(obs_query, {"eid": bottle["id"]})
                 bottle["observations"] = [row[0] for row in result.result_set if row[0]]
 
         return list(bottles)

@@ -15,6 +15,10 @@ class Embedder(Protocol):
         """Encodes a single string into a vector."""
         ...
 
+    async def async_encode(self, text: str) -> list[float]:
+        """Async version of encode for use in async event loops."""
+        ...
+
 
 @runtime_checkable
 class VectorStore(Protocol):
