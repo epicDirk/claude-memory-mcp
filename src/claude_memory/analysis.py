@@ -41,14 +41,14 @@ class AnalysisMixin(AnalysisMaintenanceMixin):
         """
         from .clustering import ClusteringService  # noqa: PLC0415
 
-        health = self.repo.get_graph_health()
+        health = await self.repo.get_graph_health()
 
         # Compute community count via clustering
         community_count = 0
         cs = ClusteringService()
         if health["total_nodes"] >= cs.min_samples:
             try:
-                nodes = self.repo.get_all_nodes(limit=2000)
+                nodes = await self.repo.get_all_nodes(limit=2000)
                 clusters = cs.cluster_nodes(nodes)
                 community_count = len(clusters)
             except Exception:
@@ -63,14 +63,14 @@ class AnalysisMixin(AnalysisMaintenanceMixin):
         Delegates to repository-level Cypher query. Returns id, name,
         node_type, project_id, focus, labels, and created_at.
         """
-        return self.repo.list_orphans(limit=limit)  # type: ignore[no-any-return]
+        return await self.repo.list_orphans(limit=limit)  # type: ignore[no-any-return]
 
     async def system_diagnostics(self) -> dict[str, Any]:
         """E-5: Unified system diagnostics — graph, vector, and split-brain."""
         result: dict[str, Any] = {}
 
         # Graph section
-        result["graph"] = self.repo.get_graph_health()
+        result["graph"] = await self.repo.get_graph_health()
 
         # Vector section
         vector_section: dict[str, Any] = {}
@@ -90,7 +90,7 @@ class AnalysisMixin(AnalysisMaintenanceMixin):
             split["graph_only_ids"] = []
         else:
             try:
-                graph_ids = set(self.repo.get_all_node_ids())
+                graph_ids = set(await self.repo.get_all_node_ids())
                 vector_ids = set(await self.vector_store.list_ids())
                 graph_only = graph_ids - vector_ids
                 split["status"] = "ok" if not graph_only else "drift"
@@ -115,14 +115,14 @@ class AnalysisMixin(AnalysisMaintenanceMixin):
         since = (now - timedelta(days=1)).isoformat()
         until = now.isoformat()
 
-        recent = self.repo.query_timeline(
+        recent = await self.repo.query_timeline(
             start=since,
             end=until,
             limit=limit,
             project_id=project_id,
         )
 
-        health = self.repo.get_graph_health()
+        health = await self.repo.get_graph_health()
 
         return {
             "recent_entities": recent,
@@ -139,7 +139,7 @@ class AnalysisMixin(AnalysisMaintenanceMixin):
         from .clustering import ClusteringService, detect_gaps  # noqa: PLC0415
 
         # 1. Cluster all nodes
-        nodes = self.repo.get_all_nodes(limit=2000)
+        nodes = await self.repo.get_all_nodes(limit=2000)
         cs = ClusteringService()
         clusters = cs.cluster_nodes(nodes)
 
@@ -147,7 +147,7 @@ class AnalysisMixin(AnalysisMaintenanceMixin):
             return []
 
         # 2. Get all edges for cross-cluster connectivity
-        edges = self.repo.get_all_edges()
+        edges = await self.repo.get_all_edges()
 
         # 3. Detect gaps
         gaps = detect_gaps(
@@ -199,7 +199,7 @@ class AnalysisMixin(AnalysisMaintenanceMixin):
             algorithm: 'pagerank' for influence, 'louvain' for communities.
         """
         # Fetch all nodes
-        node_res = self.repo.execute_cypher("MATCH (n:Entity) RETURN n")
+        node_res = await self.repo.execute_cypher("MATCH (n:Entity) RETURN n")
         if not node_res.result_set:
             return []
 
@@ -207,7 +207,7 @@ class AnalysisMixin(AnalysisMaintenanceMixin):
         node_names = list(nodes.keys())
 
         # Fetch all edges
-        edge_res = self.repo.execute_cypher(
+        edge_res = await self.repo.execute_cypher(
             "MATCH (a:Entity)-[r]->(b:Entity) RETURN a.name, b.name"
         )
         edges = [(row[0], row[1]) for row in edge_res.result_set] if edge_res.result_set else []
@@ -229,7 +229,7 @@ class AnalysisMixin(AnalysisMaintenanceMixin):
         ORDER BY n.updated_at ASC
         LIMIT 20
         """
-        res = self.repo.execute_cypher(query, {"cutoff": cutoff})
+        res = await self.repo.execute_cypher(query, {"cutoff": cutoff})
         entities = [row[0].properties for row in res.result_set]
         for e in entities:
             e.pop("embedding", None)

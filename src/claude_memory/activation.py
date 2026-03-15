@@ -59,7 +59,7 @@ class ActivationEngine:
     # Step 2: BFS spread with decay + lateral inhibition
     # ------------------------------------------------------------------
 
-    def spread(
+    async def spread(
         self,
         activation_map: dict[str, float],
         decay: float = 0.6,
@@ -99,7 +99,7 @@ class ActivationEngine:
             frontier_ids = list(frontier.keys())
 
             # Fetch 1-hop neighbors for the entire frontier
-            subgraph = self.repo.get_subgraph(frontier_ids, depth=1)
+            subgraph = await self.repo.get_subgraph(frontier_ids, depth=1)
             edges = subgraph.get("edges", [])
 
             for edge in edges:

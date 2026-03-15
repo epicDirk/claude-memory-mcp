@@ -48,7 +48,7 @@ class SearchAdvancedMixin:
 
         # 1. Vector search for seed nodes
         try:
-            vec = self.embedder.encode(query)  # type: ignore[attr-defined]
+            vec = await self.embedder.async_encode(query)  # type: ignore[attr-defined]
             search_filter: dict[str, Any] | None = None
             if project_id:
                 search_filter = {"project_id": project_id}
@@ -64,13 +64,13 @@ class SearchAdvancedMixin:
 
             # 2. Spreading activation
             activation_map = self.activation_engine.activate(seed_ids)  # type: ignore[attr-defined]
-            activation_map = self.activation_engine.spread(  # type: ignore[attr-defined]
+            activation_map = await self.activation_engine.spread(  # type: ignore[attr-defined]
                 activation_map, decay=decay, max_hops=max_hops
             )
 
             # 3. Gather all candidate IDs (seeds + spread targets)
             all_ids = list(set(seed_ids) | set(activation_map.keys()))
-            graph_data = self.repo.get_subgraph(all_ids, depth=0)  # type: ignore[attr-defined]
+            graph_data = await self.repo.get_subgraph(all_ids, depth=0)  # type: ignore[attr-defined]
             nodes_map = {n["id"]: n for n in graph_data["nodes"]}
 
             # Fire-and-forget salience update for associative search too
@@ -137,7 +137,7 @@ class SearchAdvancedMixin:
         anchor_ids = [a.id for a in anchors]
 
         # 2. Expand Subgraph
-        hologram = self.repo.get_subgraph(anchor_ids, depth)  # type: ignore[attr-defined]
+        hologram = await self.repo.get_subgraph(anchor_ids, depth)  # type: ignore[attr-defined]
 
         # 3. Assemble and Optimize
         raw_nodes = hologram.get("nodes", [])

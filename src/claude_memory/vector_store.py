@@ -33,7 +33,7 @@ class QdrantVectorStore:
         vector_size: int = 1024,
     ):
         """Connect to Qdrant and configure the target collection."""
-        self.host = host or os.getenv("QDRANT_HOST", "localhost")
+        self.host = host or os.getenv("QDRANT_HOST", "127.0.0.1")
         self.port = port or int(os.getenv("QDRANT_PORT", "6333"))
         self.client = AsyncQdrantClient(host=self.host, port=self.port)
         self.collection = collection

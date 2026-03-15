@@ -1,5 +1,6 @@
 """Text embedding service using SentenceTransformers with optional remote API fallback."""
 
+import asyncio
 import logging
 import os
 from typing import Any, cast
@@ -90,6 +91,25 @@ class EmbeddingService:
             self._reload_encoder()
             vec = self.encoder.encode(text)
         return cast(list[float], vec.tolist())
+
+    async def _async_call_api(self, texts: list[str]) -> list[list[float]]:
+        """Async helper to call remote embedding API."""
+        url = os.getenv("EMBEDDING_API_URL")
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(f"{url}/embed", json={"texts": texts})
+            resp.raise_for_status()
+            return cast(list[list[float]], resp.json()["embeddings"])
+
+    async def async_encode(self, text: str) -> list[float]:
+        """Async version of encode for use in async event loops.
+
+        Uses async HTTP for remote API, or asyncio.to_thread() for local model.
+        """
+        if os.getenv("EMBEDDING_API_URL"):
+            result = await self._async_call_api([text])
+            return result[0]
+
+        return await asyncio.to_thread(self.encode, text)
 
     def encode_batch(self, texts: list[str]) -> list[list[float]]:
         """Encodes a list of strings.

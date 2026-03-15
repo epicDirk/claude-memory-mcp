@@ -7,6 +7,7 @@ import time
 from typing import Any
 
 import redis
+import redis.asyncio as aioredis
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,7 @@ class ProjectLock:
 
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Exit async context manager — release the lock."""
-        self.release()
+        await self.manager.async_release(self.project_id)
 
 
 class LockManager:
@@ -62,8 +63,8 @@ class LockManager:
 
     def __init__(self, host: str | None = None, port: int | None = None):
         """Connect to Redis for locking, falling back to file locks if unavailable."""
-        h = host or (os.getenv("REDIS_HOST") or os.getenv("FALKORDB_HOST", "localhost"))
-        self.host: str = str(h) if h else "localhost"
+        h = host or (os.getenv("REDIS_HOST") or os.getenv("FALKORDB_HOST", "127.0.0.1"))
+        self.host: str = str(h) if h else "127.0.0.1"
 
         if port is not None:
             self.port = port
@@ -76,6 +77,7 @@ class LockManager:
         # Reuse the same Redis instance as FalkorDB (port 6379 usually)
         # FalkorDB is a Redis module, so standard Redis commands work alongside GRAPH commands.
         self.client: redis.Redis | None = None
+        self._async_client: aioredis.Redis | None = None
         try:
             self.client = redis.Redis(
                 host=self.host, port=self.port, password=self.password, decode_responses=True
@@ -88,6 +90,14 @@ class LockManager:
             # Ensure lock directory exists
             self.lock_dir = os.path.join(os.getcwd(), ".locks")
             os.makedirs(self.lock_dir, exist_ok=True)
+
+    async def _ensure_async_client(self) -> aioredis.Redis:
+        """Lazily initialize the async Redis client."""
+        if self._async_client is None:
+            self._async_client = aioredis.Redis(
+                host=self.host, port=self.port, password=self.password, decode_responses=True
+            )
+        return self._async_client
 
     def acquire(self, project_id: str, timeout: int = 5) -> bool:
         """
@@ -161,18 +171,27 @@ class LockManager:
         return ProjectLock(self, project_id)
 
     async def async_acquire(self, project_id: str, timeout: int = 5) -> bool:
-        """Non-blocking acquire using asyncio.sleep instead of time.sleep."""
+        """Non-blocking acquire using async Redis client."""
         if self.client:
             return await self._async_acquire_redis(project_id, timeout)
         else:
             return await self._async_acquire_file(project_id, timeout)
 
+    async def async_release(self, project_id: str) -> None:
+        """Async release a lock via async Redis client or file."""
+        if self.client:
+            async_client = await self._ensure_async_client()
+            await async_client.delete(f"lock:project:{project_id}")
+        else:
+            self._release_file(project_id)
+
     async def _async_acquire_redis(self, project_id: str, timeout: int) -> bool:
-        """Async spin-acquire a Redis-based lock with timeout."""
+        """Async spin-acquire a Redis-based lock using async Redis client."""
+        async_client = await self._ensure_async_client()
         lock_key = f"lock:project:{project_id}"
         end_time = time.time() + timeout
         while time.time() < end_time:
-            if self.client and self.client.set(lock_key, "locked", nx=True, ex=timeout + 5):
+            if await async_client.set(lock_key, "locked", nx=True, ex=timeout + 5):
                 return True
             await asyncio.sleep(0.1)
         logger.warning("Failed to acquire Redis lock for project %s", project_id)
