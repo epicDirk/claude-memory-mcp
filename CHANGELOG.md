@@ -38,6 +38,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `requirements.lock` + `pyproject.toml` — Removed `semgrep==1.151.0` (pins
   `rich~=13.5.2`, irreconcilable with 12+ packages needing `rich>=14`). Semgrep
   was never wired into tox or CI — unused dev dependency.
+- Dead dependency audit — removed 9 unused packages from lockfile: `black`
+  (replaced by ruff), `crosshair-tool` (never wired), `hypothesis-graphql`,
+  `hypothesis-jsonschema`, `isort` (handled by ruff), `mutmut` (not in tox),
+  `safety` + `safety-schemas` (replaced by pip-audit), `schemathesis`.
+  Also removed `crosshair-tool` from `pyproject.toml` dev deps.
 - **P0-0** (`6167ae6`) — Re-embedded all 464 entities after vector store rebuild.
 - **P0-1** (`eea3ed8`) — Surface `PRECEDED_BY` errors in `EntityCommitReceipt.warnings`.
 - **P0-2** (`26d7870`) — Set FalkorDB `maxmemory 1GB` + `noeviction` via `REDIS_ARGS`.

@@ -61,8 +61,7 @@ dev = [
     "diff-cover>=9.0.0",
     # 9. Mutation Testing (Windows compatible)
     "mutatest>=3.0.0",
-    # 10. Symbolic Execution
-    "crosshair-tool>=0.0.74",
+    # 10. Symbolic Execution (crosshair-tool removed — never wired into tox or scripts)
     # 11. Static Analysis (semgrep removed — pins rich~=13.5.x, conflicts with 12+ packages)
     # 12. Security Linter
     "bandit>=1.7.0",
