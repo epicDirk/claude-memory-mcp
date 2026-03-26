@@ -19,7 +19,7 @@ class TestLockFallback(unittest.TestCase):
             shutil.rmtree(self.lock_dir)
 
     @patch("redis.Redis")
-    def test_fallback_initialization(self, mock_redis):
+    def test_evil1_fallback_initialization(self, mock_redis):
         # Simulate Redis failure
         mock_redis.side_effect = Exception("Connection refused")
 
@@ -29,7 +29,7 @@ class TestLockFallback(unittest.TestCase):
         self.assertTrue(os.path.exists(self.lock_dir))
 
     @patch("redis.Redis")
-    def test_file_acquire_release(self, mock_redis):
+    def test_evil2_file_acquire_release(self, mock_redis):
         mock_redis.side_effect = Exception("Connection refused")
         manager = LockManager()
         project_id = "test_project"
@@ -55,7 +55,7 @@ class TestLockFallback(unittest.TestCase):
         self.assertFalse(os.path.exists(lock_path))
 
     @patch("redis.Redis")
-    def test_context_manager(self, mock_redis):
+    def test_evil3_context_manager(self, mock_redis):
         mock_redis.side_effect = Exception("Connection refused")
         manager = LockManager()
         project_id = "ctx_project"

@@ -17,7 +17,7 @@ from claude_memory.graph_algorithms import compute_louvain, compute_pagerank
 class TestPageRankEdgeCases:
     """Cover line 32: return [] for empty node list."""
 
-    def test_empty_node_list_returns_empty(self) -> None:
+    def test_sad1_empty_node_list_returns_empty(self) -> None:
         result = compute_pagerank(nodes={}, node_names=[], edges=[])
         assert result == []
 
@@ -25,11 +25,11 @@ class TestPageRankEdgeCases:
 class TestLouvainEdgeCases:
     """Cover lines 123 (empty list) and 138 (no edges)."""
 
-    def test_empty_node_list_returns_empty(self) -> None:
+    def test_sad1_empty_node_list_returns_empty(self) -> None:
         result = compute_louvain(nodes={}, node_names=[], edges=[])
         assert result == []
 
-    def test_nodes_with_no_edges_each_own_community(self) -> None:
+    def test_sad3_nodes_with_no_edges_each_own_community(self) -> None:
         nodes = {"A": MagicMock(), "B": MagicMock(), "C": MagicMock()}
         result = compute_louvain(nodes=nodes, node_names=["A", "B", "C"], edges=[])
         assert len(result) == 3
@@ -37,7 +37,7 @@ class TestLouvainEdgeCases:
             assert community["size"] == 1
             assert len(community["members"]) == 1
 
-    def test_nodes_with_no_edges_caps_at_five(self) -> None:
+    def test_sad4_nodes_with_no_edges_caps_at_five(self) -> None:
         names = [f"N{i}" for i in range(10)]
         nodes = {n: MagicMock() for n in names}
         result = compute_louvain(nodes=nodes, node_names=names, edges=[])
@@ -77,22 +77,22 @@ class TestQueryBottlesFilters:
         call_args = mock_graph.query.call_args
         return call_args[0][0], call_args[0][1]
 
-    def test_before_date_filter(self) -> None:
+    def test_happy_before_date_filter(self) -> None:
         query, params = self._call_get_bottles(before_date="2026-06-01T00:00:00")
         assert "$before" in query
         assert params["before"] == "2026-06-01T00:00:00"
 
-    def test_after_date_filter(self) -> None:
+    def test_happy_after_date_filter(self) -> None:
         query, params = self._call_get_bottles(after_date="2025-01-01T00:00:00")
         assert "$after" in query
         assert params["after"] == "2025-01-01T00:00:00"
 
-    def test_project_id_filter(self) -> None:
+    def test_happy_project_id_filter(self) -> None:
         query, params = self._call_get_bottles(project_id="proj-42")
         assert "$pid" in query
         assert params["pid"] == "proj-42"
 
-    def test_all_filters_combined(self) -> None:
+    def test_happy_all_filters_combined(self) -> None:
         query, params = self._call_get_bottles(
             search_text="hello",
             before_date="2026-12-31",

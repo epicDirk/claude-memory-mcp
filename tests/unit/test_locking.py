@@ -18,12 +18,12 @@ def mock_redis() -> Generator[MagicMock, None, None]:
 
 
 class TestLockManager:
-    def test_acquire_success(self, mock_redis: MagicMock) -> None:
+    def test_happy_acquire_success(self, mock_redis: MagicMock) -> None:
         manager = LockManager()
         assert manager.acquire("p1") is True
         mock_redis.set.assert_called()
 
-    def test_acquire_failure(self, mock_redis: MagicMock) -> None:
+    def test_happy_acquire_failure(self, mock_redis: MagicMock) -> None:
         manager = LockManager()
         # Simulate lock held (set returns False)
         mock_redis.set.return_value = False
@@ -34,12 +34,12 @@ class TestLockManager:
         duration = time.time() - start
         assert duration >= 0.1
 
-    def test_release(self, mock_redis: MagicMock) -> None:
+    def test_happy_release(self, mock_redis: MagicMock) -> None:
         manager = LockManager()
         manager.release("p1")
         mock_redis.delete.assert_called_with("lock:project:p1")
 
-    def test_context_manager(self, mock_redis: MagicMock) -> None:
+    def test_happy_context_manager(self, mock_redis: MagicMock) -> None:
         manager = LockManager()
         with manager.lock("p1"):
             pass

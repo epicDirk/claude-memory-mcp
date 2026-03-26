@@ -18,7 +18,7 @@ import pytest
 class TestProjectLockConstruction:
     """Assert ProjectLock stores correct project_id and manager ref."""
 
-    def test_lock_evil_project_id_propagated(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_happy_lock_evil_project_id_propagated(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Evil: ProjectLock must store the exact project_id."""
         monkeypatch.delenv("REDIS_HOST", raising=False)
         monkeypatch.delenv("REDIS_PORT", raising=False)
@@ -35,7 +35,7 @@ class TestProjectLockConstruction:
             lock = lm.lock("test-project")
             assert lock.project_id == "test-project"
 
-    def test_lock_evil_manager_bound(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_happy_lock_evil_manager_bound(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Evil: ProjectLock must store reference to the LockManager."""
         monkeypatch.delenv("REDIS_HOST", raising=False)
         monkeypatch.delenv("REDIS_PORT", raising=False)
@@ -52,7 +52,7 @@ class TestProjectLockConstruction:
             lock = lm.lock("p1")
             assert lock.manager is lm
 
-    def test_lock_evil_different_projects(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_happy_lock_evil_different_projects(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Evil: different project IDs produce different ProjectLock objects."""
         monkeypatch.delenv("REDIS_HOST", raising=False)
         monkeypatch.delenv("REDIS_PORT", raising=False)
@@ -70,7 +70,7 @@ class TestProjectLockConstruction:
             lock_b = lm.lock("project-b")
             assert lock_a.project_id != lock_b.project_id
 
-    def test_lock_sad_empty_project_id(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_sad1_lock_sad_empty_project_id(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Sad: empty project_id is technically valid."""
         monkeypatch.delenv("REDIS_HOST", raising=False)
         monkeypatch.delenv("REDIS_PORT", raising=False)
@@ -87,7 +87,7 @@ class TestProjectLockConstruction:
             lock = lm.lock("")
             assert lock.project_id == ""
 
-    def test_lock_happy(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_happy_lock_happy(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Happy: ProjectLock constructed correctly."""
         monkeypatch.delenv("REDIS_HOST", raising=False)
         monkeypatch.delenv("REDIS_PORT", raising=False)
@@ -114,7 +114,7 @@ class TestProjectLockConstruction:
 class TestProjectLockAsyncCtx:
     """Assert async context manager calls acquire/release."""
 
-    async def test_ctx_evil_acquire_called(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def test_happy_ctx_evil_acquire_called(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Evil: __aenter__ must trigger acquire."""
         monkeypatch.delenv("REDIS_HOST", raising=False)
         monkeypatch.delenv("REDIS_PORT", raising=False)
@@ -132,7 +132,7 @@ class TestProjectLockAsyncCtx:
             async with lm.lock("p1"):
                 mock_redis.return_value.set.assert_called()
 
-    async def test_ctx_evil_release_called(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def test_happy_ctx_evil_release_called(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Evil: __aexit__ must trigger release (Redis DELETE)."""
         monkeypatch.delenv("REDIS_HOST", raising=False)
         monkeypatch.delenv("REDIS_PORT", raising=False)
@@ -151,7 +151,7 @@ class TestProjectLockAsyncCtx:
                 pass
             mock_redis.return_value.delete.assert_called()
 
-    async def test_ctx_evil_release_on_exception(
+    async def test_evil1_ctx_evil_release_on_exception(
         self,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
@@ -174,7 +174,7 @@ class TestProjectLockAsyncCtx:
                     raise RuntimeError("boom")
             mock_redis.return_value.delete.assert_called()
 
-    async def test_ctx_sad_timeout_on_contention(
+    async def test_evil2_ctx_sad_timeout_on_contention(
         self,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
@@ -197,7 +197,7 @@ class TestProjectLockAsyncCtx:
                     async with lm.lock("p1"):
                         pass
 
-    async def test_ctx_happy_normal_flow(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def test_happy_ctx_happy_normal_flow(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Happy: acquire → execute → release completes normally."""
         monkeypatch.delenv("REDIS_HOST", raising=False)
         monkeypatch.delenv("REDIS_PORT", raising=False)

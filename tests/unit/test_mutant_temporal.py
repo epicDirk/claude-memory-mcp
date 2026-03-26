@@ -46,7 +46,7 @@ def _make_service() -> tuple[Any, MagicMock]:
 class TestEndSession:
     """Assert end_session sets status='closed' and handles missing sessions."""
 
-    async def test_end_evil_status_closed(self) -> None:
+    async def test_happy_end_evil_status_closed(self) -> None:
         """Evil: session must be set to status='closed'."""
         service, mock_repo = _make_service()
         mock_node = MagicMock()
@@ -60,7 +60,7 @@ class TestEndSession:
         # Verify the cypher was called to update the session
         assert mock_repo.execute_cypher.call_count >= 1
 
-    async def test_end_evil_not_found(self) -> None:
+    async def test_evil1_end_evil_not_found(self) -> None:
         """Evil: if session not found, return error info."""
         service, mock_repo = _make_service()
         mock_result = MagicMock()
@@ -71,7 +71,7 @@ class TestEndSession:
         result = await service.end_session(params)
         assert "error" in result or "status" in result
 
-    async def test_end_evil_summary_propagated(self) -> None:
+    async def test_happy_end_evil_summary_propagated(self) -> None:
         """Evil: summary from params must be passed to cypher."""
         service, mock_repo = _make_service()
         mock_node = MagicMock()
@@ -84,7 +84,7 @@ class TestEndSession:
         await service.end_session(params)
         assert mock_repo.execute_cypher.called
 
-    async def test_end_sad_outcomes_stored(self) -> None:
+    async def test_happy_end_sad_outcomes_stored(self) -> None:
         """Sad: outcomes list should be propagated."""
         service, mock_repo = _make_service()
         mock_node = MagicMock()
@@ -101,7 +101,7 @@ class TestEndSession:
         await service.end_session(params)
         assert mock_repo.execute_cypher.called
 
-    async def test_end_happy(self) -> None:
+    async def test_happy_end_happy(self) -> None:
         """Happy: session ends cleanly."""
         service, mock_repo = _make_service()
         mock_node = MagicMock()
@@ -123,7 +123,7 @@ class TestEndSession:
 class TestGetBottles:
     """Assert get_bottles takes BottleQueryParams and returns bottle dicts."""
 
-    async def test_bottles_evil_empty_result(self) -> None:
+    async def test_sad1_bottles_evil_empty_result(self) -> None:
         """Evil: no bottles → empty list."""
         service, mock_repo = _make_service()
         mock_repo.get_bottles.return_value = []
@@ -132,7 +132,7 @@ class TestGetBottles:
         result = await service.get_bottles(params)
         assert result == []
 
-    async def test_bottles_evil_limit_passed(self) -> None:
+    async def test_sad2_bottles_evil_limit_passed(self) -> None:
         """Evil: default limit=10 must be passed to repo."""
         service, mock_repo = _make_service()
         mock_repo.get_bottles.return_value = []
@@ -143,7 +143,7 @@ class TestGetBottles:
         call_kwargs = mock_repo.get_bottles.call_args
         assert call_kwargs[1]["limit"] == 10 or call_kwargs[0][0] == 10
 
-    async def test_bottles_evil_include_content_false(self) -> None:
+    async def test_happy_bottles_evil_include_content_false(self) -> None:
         """Evil: include_content=False should NOT fetch observations."""
         service, mock_repo = _make_service()
         mock_repo.get_bottles.return_value = [
@@ -155,7 +155,7 @@ class TestGetBottles:
         # execute_cypher should NOT be called for observations
         mock_repo.execute_cypher.assert_not_called()
 
-    async def test_bottles_sad_include_content_true_fetches_obs(self) -> None:
+    async def test_happy_bottles_sad_include_content_true_fetches_obs(self) -> None:
         """Sad: include_content=True triggers observation query per bottle."""
         service, mock_repo = _make_service()
         mock_repo.get_bottles.return_value = [
@@ -170,7 +170,7 @@ class TestGetBottles:
         mock_repo.execute_cypher.assert_called()
         assert result[0]["observations"] == ["obs content"]
 
-    async def test_bottles_happy(self) -> None:
+    async def test_happy_bottles_happy(self) -> None:
         """Happy: returns list of bottle dicts."""
         service, mock_repo = _make_service()
         mock_repo.get_bottles.return_value = [

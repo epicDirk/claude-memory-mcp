@@ -81,14 +81,14 @@ class TestLibrarianAgent:
                 )
                 return agent
 
-    async def test_run_cycle_fetch_exception(self, librarian: Any) -> None:
+    async def test_evil1_run_cycle_fetch_exception(self, librarian: Any) -> None:
         """Lines 46-49: fetch throws, returns early with error."""
         librarian.memory.repo.get_all_nodes.side_effect = ConnectionError(LIBRARIAN_FETCH_ERROR)
         report = await librarian.run_cycle()
         assert LIBRARIAN_FETCH_ERROR in report["errors"][0]
         assert report["clusters_found"] == 0
 
-    async def test_run_cycle_consolidation_error(self, librarian: Any) -> None:
+    async def test_evil2_run_cycle_consolidation_error(self, librarian: Any) -> None:
         """Lines 74-76: consolidation throws, error captured in report."""
         nodes = [
             {"id": LIBRARIAN_NODE_ID_1, "name": LIBRARIAN_NODE_NAME_1},
@@ -118,7 +118,7 @@ class TestLibrarianAgent:
         assert report["consolidations_created"] == 0
         assert any(LIBRARIAN_CONSOLIDATE_ERROR in e for e in report["errors"])
 
-    async def test_run_cycle_prune_error(self, librarian: Any) -> None:
+    async def test_evil3_run_cycle_prune_error(self, librarian: Any) -> None:
         """Lines 82-83: prune throws, error captured in report."""
         nodes = [
             {"id": LIBRARIAN_NODE_ID_1, "name": LIBRARIAN_NODE_NAME_1},
@@ -132,7 +132,7 @@ class TestLibrarianAgent:
         report = await librarian.run_cycle()
         assert any("Prune" in e for e in report["errors"])
 
-    async def test_run_cycle_successful_consolidation(self, librarian: Any) -> None:
+    async def test_happy_run_cycle_successful_consolidation(self, librarian: Any) -> None:
         """Lines 71-73: successful consolidation increments counter."""
         nodes = [
             {"id": LIBRARIAN_NODE_ID_1, "name": LIBRARIAN_NODE_NAME_1},
@@ -168,7 +168,7 @@ class TestLibrarianAgent:
 class TestLockManager:
     """Tests for uncovered lines in LockManager and ProjectLock."""
 
-    def test_project_lock_enter_timeout(self) -> None:
+    def test_evil4_project_lock_enter_timeout(self) -> None:
         """Line 28: __enter__ raises TimeoutError when acquire fails."""
         from claude_memory.lock_manager import ProjectLock
 
@@ -179,7 +179,7 @@ class TestLockManager:
         with pytest.raises(TimeoutError, match=LOCK_PROJECT_ID):
             lock.__enter__()
 
-    def test_lock_manager_custom_port(self) -> None:
+    def test_happy_lock_manager_custom_port(self) -> None:
         """Line 45: port argument provided directly."""
         with patch("claude_memory.lock_manager.redis.Redis") as mock_redis:
             mock_client = MagicMock()
@@ -192,7 +192,7 @@ class TestLockManager:
             assert mgr.port == LOCK_PORT
             assert mgr.host == LOCK_HOST
 
-    def test_file_lock_stale_cleanup(self, tmp_path: Any) -> None:
+    def test_evil5_file_lock_stale_cleanup(self, tmp_path: Any) -> None:
         """Lines 114-117: stale file lock detected, removed, and re-acquired."""
         from claude_memory.lock_manager import LockManager
 
@@ -211,7 +211,7 @@ class TestLockManager:
             result = mgr._acquire_file(LOCK_PROJECT_ID, timeout=LOCK_TIMEOUT)
             assert result is True
 
-    def test_release_file_not_found(self, tmp_path: Any) -> None:
+    def test_evil6_release_file_not_found(self, tmp_path: Any) -> None:
         """Lines 126-127: releasing a lock file that doesn't exist (FileNotFoundError)."""
         from claude_memory.lock_manager import LockManager
 
@@ -224,7 +224,7 @@ class TestLockManager:
             # Should not raise even though file doesn't exist
             mgr._release_file(LOCK_PROJECT_ID)
 
-    def test_acquire_redis_timeout(self) -> None:
+    def test_evil7_acquire_redis_timeout(self) -> None:
         """Line 90-91: Redis lock acquisition times out."""
         from claude_memory.lock_manager import LockManager
 
@@ -251,7 +251,7 @@ class TestLockManager:
 class TestClusteringGaps:
     """Tests for uncovered lines in ClusteringService."""
 
-    def test_cluster_nodes_no_embeddings(self) -> None:
+    def test_sad1_cluster_nodes_no_embeddings(self) -> None:
         """Lines 48-50: all nodes lack embeddings → empty result."""
         from claude_memory.clustering import ClusteringService
 
@@ -264,7 +264,7 @@ class TestClusteringGaps:
         result = svc.cluster_nodes(nodes_without_embeddings)
         assert result == []
 
-    def test_cluster_nodes_filters_invalid_embeddings(self) -> None:
+    def test_evil8_cluster_nodes_filters_invalid_embeddings(self) -> None:
         """Line 44→42: branch where embedding is falsy."""
         from claude_memory.clustering import ClusteringService
 
@@ -285,7 +285,7 @@ class TestClusteringGaps:
 class TestContextManagerGaps:
     """Tests for uncovered lines in ContextManager and TokenBudget."""
 
-    def test_token_budget_reset(self) -> None:
+    def test_happy_token_budget_reset(self) -> None:
         """Line 35: TokenBudget.reset() sets used back to 0."""
         from claude_memory.context_manager import TokenBudget
 
@@ -295,7 +295,7 @@ class TestContextManagerGaps:
         budget.reset()
         assert budget.used == 0
 
-    def test_optimize_truncates_description(self) -> None:
+    def test_happy_optimize_truncates_description(self) -> None:
         """Lines 97-104: node description truncated when it doesn't fit fully."""
         from claude_memory.context_manager import ContextManager
 
@@ -320,7 +320,7 @@ class TestContextManagerGaps:
 class TestOntologyGaps:
     """Tests for uncovered lines in OntologyManager."""
 
-    def test_load_failure_uses_defaults(self, tmp_path: Any) -> None:
+    def test_sad2_load_failure_uses_defaults(self, tmp_path: Any) -> None:
         """Lines 59-60: load raises exception, defaults are preserved."""
         config_path = os.path.join(str(tmp_path), ONTOLOGY_CONFIG_PATH)
         # Write invalid JSON to trigger load failure
@@ -334,7 +334,7 @@ class TestOntologyGaps:
         assert mgr.is_valid_type("Entity")
         assert mgr.is_valid_type("Concept")
 
-    def test_add_type_overwrite_existing(self, tmp_path: Any) -> None:
+    def test_happy_add_type_overwrite_existing(self, tmp_path: Any) -> None:
         """Line 81: overwriting an existing type triggers warning."""
         config_path = os.path.join(str(tmp_path), ONTOLOGY_CONFIG_PATH)
 
@@ -355,7 +355,7 @@ class TestOntologyGaps:
         assert defn["description"] == "Overwritten description"
         assert defn["required_properties"] == [ONTOLOGY_REQUIRED_PROP]
 
-    def test_add_type_without_required_properties(self, tmp_path: Any) -> None:
+    def test_sad3_add_type_without_required_properties(self, tmp_path: Any) -> None:
         """Line 81: required_properties is None → default to empty list."""
         config_path = os.path.join(str(tmp_path), ONTOLOGY_CONFIG_PATH)
 
@@ -392,7 +392,7 @@ class TestLibrarianBranchGaps:
                     clustering_service=mock_clustering,
                 )
 
-    async def test_consolidation_no_id_in_result(self, librarian: Any) -> None:
+    async def test_happy_consolidation_no_id_in_result(self, librarian: Any) -> None:
         """Branch 72→60: consolidation result has no 'id' key."""
         nodes = [
             {"id": LIBRARIAN_NODE_ID_1, "name": LIBRARIAN_NODE_NAME_1},
@@ -417,7 +417,7 @@ class TestLibrarianBranchGaps:
 class TestLockManagerBranchGaps:
     """Cover remaining lock_manager branches."""
 
-    def test_release_redis_no_client(self) -> None:
+    def test_evil9_release_redis_no_client(self) -> None:
         """Branch 94→exit: client is None, release is a no-op."""
         from claude_memory.lock_manager import LockManager
 
@@ -427,7 +427,7 @@ class TestLockManagerBranchGaps:
             assert mgr.client is None
             mgr._release_redis(LOCK_PROJECT_ID)
 
-    def test_file_lock_stale_value_error(self, tmp_path: Any) -> None:
+    def test_evil10_file_lock_stale_value_error(self, tmp_path: Any) -> None:
         """Lines 116-117: stale lock has non-numeric content → ValueError."""
         from claude_memory.lock_manager import LockManager
 
@@ -460,7 +460,7 @@ class TestLockManagerBranchGaps:
 class TestAsyncLockManager:
     """Tests for the new async lock acquire/release and async context manager."""
 
-    async def test_async_acquire_redis_success(self) -> None:
+    async def test_happy_async_acquire_redis_success(self) -> None:
         """Async Redis lock acquisition succeeds on first try."""
         from claude_memory.lock_manager import LockManager
 
@@ -472,7 +472,7 @@ class TestAsyncLockManager:
         result = await mgr.async_acquire(LOCK_PROJECT_ID, timeout=LOCK_TIMEOUT)
         assert result is True
 
-    async def test_async_acquire_redis_timeout(self) -> None:
+    async def test_evil11_async_acquire_redis_timeout(self) -> None:
         """Async Redis lock acquisition times out with asyncio.sleep."""
         from claude_memory.lock_manager import LockManager
 
@@ -494,7 +494,7 @@ class TestAsyncLockManager:
                 result = await mgr._async_acquire_redis(LOCK_PROJECT_ID, timeout=1)
                 assert result is False
 
-    async def test_async_acquire_file_success(self, tmp_path: Any) -> None:
+    async def test_evil12_async_acquire_file_success(self, tmp_path: Any) -> None:
         """Async file lock acquisition succeeds."""
         from claude_memory.lock_manager import LockManager
 
@@ -506,7 +506,7 @@ class TestAsyncLockManager:
         result = await mgr.async_acquire(LOCK_PROJECT_ID, timeout=LOCK_TIMEOUT)
         assert result is True
 
-    async def test_async_context_manager_success(self) -> None:
+    async def test_happy_async_context_manager_success(self) -> None:
         """ProjectLock async context manager acquires and releases."""
         from claude_memory.lock_manager import ProjectLock
 
@@ -520,7 +520,7 @@ class TestAsyncLockManager:
         mock_manager.async_acquire.assert_called_once_with(LOCK_PROJECT_ID, 5)
         mock_manager.release.assert_called_once_with(LOCK_PROJECT_ID)
 
-    async def test_async_context_manager_timeout(self) -> None:
+    async def test_evil13_async_context_manager_timeout(self) -> None:
         """ProjectLock async context manager raises TimeoutError on failure."""
         from claude_memory.lock_manager import ProjectLock
 
@@ -532,7 +532,7 @@ class TestAsyncLockManager:
             async with lock:
                 pass
 
-    async def test_async_file_lock_stale_cleanup(self, tmp_path: Any) -> None:
+    async def test_evil14_async_file_lock_stale_cleanup(self, tmp_path: Any) -> None:
         """Lines 170-176: async file lock detects and removes stale lock."""
         from claude_memory.lock_manager import LockManager
 
@@ -549,7 +549,7 @@ class TestAsyncLockManager:
         result = await mgr._async_acquire_file(LOCK_PROJECT_ID, timeout=LOCK_TIMEOUT)
         assert result is True
 
-    async def test_async_file_lock_stale_value_error(self, tmp_path: Any) -> None:
+    async def test_evil15_async_file_lock_stale_value_error(self, tmp_path: Any) -> None:
         """Line 177: stale lock has non-numeric content → ValueError caught."""
         from claude_memory.lock_manager import LockManager
 
@@ -575,7 +575,7 @@ class TestAsyncLockManager:
                 result = await mgr._async_acquire_file(LOCK_PROJECT_ID, timeout=1)
                 assert result is False
 
-    async def test_async_file_lock_timeout(self, tmp_path: Any) -> None:
+    async def test_evil16_async_file_lock_timeout(self, tmp_path: Any) -> None:
         """Lines 179-181: async file lock times out when lock held by other."""
         from claude_memory.lock_manager import LockManager
 

@@ -106,7 +106,7 @@ class TestRrfMerge:
 class TestRrfMergeChecklist:
     """Additional coverage from spec §10.1 table."""
 
-    def test_k_parameter_affects_distribution(self) -> None:
+    def test_happy_k_parameter_affects_distribution(self) -> None:
         """Higher k = flatter score distribution."""
         vector = _vec("a", "b", "c")
         graph = _graph("a", "b", "c")
@@ -119,7 +119,7 @@ class TestRrfMergeChecklist:
         spread_high = merged_high_k[0].rrf_score - merged_high_k[2].rrf_score
         assert spread_low > spread_high
 
-    def test_respects_limit(self) -> None:
+    def test_happy_respects_limit(self) -> None:
         """Output length never exceeds limit."""
         vector = _vec("a", "b", "c", "d", "e")
         graph = _graph("f", "g", "h", "i", "j")
@@ -128,11 +128,11 @@ class TestRrfMergeChecklist:
 
         assert len(merged) <= 3
 
-    def test_both_lists_empty(self) -> None:
+    def test_sad1_both_lists_empty(self) -> None:
         """Both lists empty → empty output."""
         assert rrf_merge([], []) == []
 
-    def test_graph_entries_without_id_skipped(self) -> None:
+    def test_sad2_graph_entries_without_id_skipped(self) -> None:
         """Graph entries missing 'id' key are silently skipped."""
         vector = _vec("a")
         graph = [{"name": "orphan"}]  # no 'id' key
@@ -142,7 +142,7 @@ class TestRrfMergeChecklist:
         assert len(merged) == 1
         assert merged[0].entity_id == "a"
 
-    def test_merged_result_fields_populated(self) -> None:
+    def test_happy_merged_result_fields_populated(self) -> None:
         """MergedResult carries all provenance information."""
         vector = [{"_id": "e1", "_score": 0.85}]
         graph = [{"id": "e1", "name": "Node-e1", "path_len": 2}]

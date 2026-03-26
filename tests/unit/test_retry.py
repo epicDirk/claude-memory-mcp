@@ -10,7 +10,7 @@ from claude_memory.retry import retry_on_transient
 class TestRetryOnTransientSync:
     """Test sync retry behavior."""
 
-    def test_succeeds_first_try(self) -> None:
+    def test_happy_succeeds_first_try(self) -> None:
         """Function succeeds on first call — no retries needed."""
 
         @retry_on_transient(max_retries=3)
@@ -20,7 +20,7 @@ class TestRetryOnTransientSync:
 
         assert fn() == "ok"
 
-    def test_retries_on_connection_error(self) -> None:
+    def test_evil1_retries_on_connection_error(self) -> None:
         """Retries on ConnectionError and eventually succeeds."""
         call_count = 0
 
@@ -36,7 +36,7 @@ class TestRetryOnTransientSync:
         assert fn() == "recovered"
         assert call_count == 3
 
-    def test_retries_on_timeout_error(self) -> None:
+    def test_evil2_retries_on_timeout_error(self) -> None:
         """Retries on TimeoutError."""
         call_count = 0
 
@@ -52,7 +52,7 @@ class TestRetryOnTransientSync:
         assert fn() == "ok"
         assert call_count == 2
 
-    def test_raises_after_max_retries(self) -> None:
+    def test_evil3_raises_after_max_retries(self) -> None:
         """Raises the original exception after exhausting retries."""
 
         @retry_on_transient(max_retries=2, base_delay=0.01)
@@ -63,7 +63,7 @@ class TestRetryOnTransientSync:
         with pytest.raises(ConnectionError, match="permanent failure"):
             fn()
 
-    def test_non_retryable_error_not_caught(self) -> None:
+    def test_evil4_non_retryable_error_not_caught(self) -> None:
         """Non-transient exceptions are raised immediately."""
 
         @retry_on_transient(max_retries=3, base_delay=0.01)
@@ -74,7 +74,7 @@ class TestRetryOnTransientSync:
         with pytest.raises(ValueError, match="not transient"):
             fn()
 
-    def test_custom_exceptions(self) -> None:
+    def test_happy_custom_exceptions(self) -> None:
         """Custom exception types can be specified."""
         call_count = 0
 
@@ -89,7 +89,7 @@ class TestRetryOnTransientSync:
 
         assert fn() == "ok"
 
-    def test_max_delay_cap(self) -> None:
+    def test_happy_max_delay_cap(self) -> None:
         """Delay is capped at max_delay."""
         call_count = 0
 
@@ -114,7 +114,7 @@ class TestRetryOnTransientAsync:
     """Test async retry behavior."""
 
     @pytest.mark.asyncio
-    async def test_async_succeeds_first_try(self) -> None:
+    async def test_happy_async_succeeds_first_try(self) -> None:
         """Async function succeeds on first call."""
 
         @retry_on_transient(max_retries=3)
@@ -125,7 +125,7 @@ class TestRetryOnTransientAsync:
         assert await fn() == "ok"
 
     @pytest.mark.asyncio
-    async def test_async_retries_on_connection_error(self) -> None:
+    async def test_evil5_async_retries_on_connection_error(self) -> None:
         """Async retries on ConnectionError."""
         call_count = 0
 
@@ -142,7 +142,7 @@ class TestRetryOnTransientAsync:
         assert call_count == 3
 
     @pytest.mark.asyncio
-    async def test_async_raises_after_max_retries(self) -> None:
+    async def test_evil6_async_raises_after_max_retries(self) -> None:
         """Async raises after exhausting retries."""
 
         @retry_on_transient(max_retries=2, base_delay=0.01)
@@ -154,7 +154,7 @@ class TestRetryOnTransientAsync:
             await fn()
 
     @pytest.mark.asyncio
-    async def test_async_non_retryable_not_caught(self) -> None:
+    async def test_evil7_async_non_retryable_not_caught(self) -> None:
         """Async non-transient exceptions are raised immediately."""
 
         @retry_on_transient(max_retries=3, base_delay=0.01)
@@ -166,7 +166,7 @@ class TestRetryOnTransientAsync:
             await fn()
 
     @pytest.mark.asyncio
-    async def test_async_os_error_retried(self) -> None:
+    async def test_evil8_async_os_error_retried(self) -> None:
         """OSError is retried (it's in the default exception list)."""
         call_count = 0
 

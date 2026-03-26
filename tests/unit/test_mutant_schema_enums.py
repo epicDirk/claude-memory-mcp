@@ -42,7 +42,7 @@ _EXPECTED_EDGE_TYPES = {
 class TestEdgeType:
     """Assert exact membership of EdgeType Literal."""
 
-    def test_edge_type_evil_extra_type_not_present(self) -> None:
+    def test_happy_edge_type_evil_extra_type_not_present(self) -> None:
         """Evil: a fake type like 'DESTROYS' must NOT be in EdgeType."""
         from claude_memory.schema import EdgeType
 
@@ -50,7 +50,7 @@ class TestEdgeType:
         assert "DESTROYS" not in allowed
         assert "XXENABLESXX" not in allowed
 
-    def test_edge_type_evil_mutated_strings_rejected(self) -> None:
+    def test_happy_edge_type_evil_mutated_strings_rejected(self) -> None:
         """Evil: mutmut-style mutations must not match."""
         from claude_memory.schema import EdgeType
 
@@ -59,14 +59,14 @@ class TestEdgeType:
             mutated = f"XX{original}XX"
             assert mutated not in allowed
 
-    def test_edge_type_evil_count_exact(self) -> None:
+    def test_happy_edge_type_evil_count_exact(self) -> None:
         """Evil: adding or removing types changes the count."""
         from claude_memory.schema import EdgeType
 
         allowed = set(get_args(EdgeType))
         assert len(allowed) == 24
 
-    def test_edge_type_sad_case_sensitive(self) -> None:
+    def test_happy_edge_type_sad_case_sensitive(self) -> None:
         """Sad: lowercase versions must not be present."""
         from claude_memory.schema import EdgeType
 
@@ -74,7 +74,7 @@ class TestEdgeType:
         assert "depends_on" not in allowed
         assert "enables" not in allowed
 
-    def test_edge_type_happy_all_present(self) -> None:
+    def test_happy_edge_type_happy_all_present(self) -> None:
         """Happy: every expected relationship type is in EdgeType."""
         from claude_memory.schema import EdgeType
 
@@ -92,35 +92,35 @@ _EXPECTED_CERTAINTY = {"confirmed", "speculative", "spitballing", "rejected", "r
 class TestCertaintyLevel:
     """Assert exact membership of CertaintyLevel Literal."""
 
-    def test_certainty_evil_mutated_string(self) -> None:
+    def test_happy_certainty_evil_mutated_string(self) -> None:
         """Evil: mutmut-style mutations must not match."""
         from claude_memory.schema import CertaintyLevel
 
         allowed = set(get_args(CertaintyLevel))
         assert "XXconfirmedXX" not in allowed
 
-    def test_certainty_evil_extra_level(self) -> None:
+    def test_happy_certainty_evil_extra_level(self) -> None:
         """Evil: a fake level must NOT be in CertaintyLevel."""
         from claude_memory.schema import CertaintyLevel
 
         allowed = set(get_args(CertaintyLevel))
         assert "maybe" not in allowed
 
-    def test_certainty_evil_count_exact(self) -> None:
+    def test_happy_certainty_evil_count_exact(self) -> None:
         """Evil: exactly 5 certainty levels."""
         from claude_memory.schema import CertaintyLevel
 
         allowed = set(get_args(CertaintyLevel))
         assert len(allowed) == 5
 
-    def test_certainty_sad_uppercase_rejected(self) -> None:
+    def test_happy_certainty_sad_uppercase_rejected(self) -> None:
         """Sad: uppercase versions not valid."""
         from claude_memory.schema import CertaintyLevel
 
         allowed = set(get_args(CertaintyLevel))
         assert "Confirmed" not in allowed
 
-    def test_certainty_happy_all_present(self) -> None:
+    def test_happy_certainty_happy_all_present(self) -> None:
         """Happy: every expected certainty level is present."""
         from claude_memory.schema import CertaintyLevel
 

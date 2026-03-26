@@ -2,14 +2,14 @@ from claude_memory.context_manager import ContextManager, TokenBudget
 
 
 class TestTokenBudget:
-    def test_estimation(self):
+    def test_happy_estimation(self):
         budget = TokenBudget()
         assert budget.estimate("1234") == 1  # 4 chars = 1 token
         assert budget.estimate("") == 0
         assert budget.estimate("12341234") == 2
         assert budget.estimate("1") == 1  # Verify minimum cost
 
-    def test_check_and_consume(self):
+    def test_happy_check_and_consume(self):
         budget = TokenBudget(limit=10)
         text = "1234" * 5  # 20 chars = 5 tokens
 
@@ -30,7 +30,7 @@ class TestTokenBudget:
 
 
 class TestContextManager:
-    def test_optimize_pruning(self):
+    def test_happy_optimize_pruning(self):
         # Setup: each node ~10 tokens?
         # "Name: NodeX Type: Test" -> ~20 chars = 5 tokens
         nodes = [
@@ -61,7 +61,7 @@ class TestContextManager:
             if "description" in optimized[1]:
                 assert optimized[1]["description"] == "[TRUNCATED]"
 
-    def test_optimize_preserves_order(self):
+    def test_happy_optimize_preserves_order(self):
         nodes = [{"name": f"Node{i}", "node_type": "T"} for i in range(10)]
         manager = ContextManager()
         optimized = manager.optimize(nodes, max_tokens=1000)

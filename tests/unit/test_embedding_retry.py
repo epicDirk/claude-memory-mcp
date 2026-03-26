@@ -22,7 +22,7 @@ class TestEncodeRetry:
     """encode() retries once on RuntimeError then succeeds or propagates."""
 
     @patch.dict("os.environ", {}, clear=True)
-    def test_encode_retries_on_runtime_error(self) -> None:
+    def test_evil1_encode_retries_on_runtime_error(self) -> None:
         """First call raises RuntimeError; retry succeeds after encoder reload."""
         svc = _make_service()
 
@@ -41,7 +41,7 @@ class TestEncodeRetry:
         assert mock_encoder.encode.call_count == 2
 
     @patch.dict("os.environ", {}, clear=True)
-    def test_encode_propagates_on_double_failure(self) -> None:
+    def test_evil2_encode_propagates_on_double_failure(self) -> None:
         """If both first call and retry raise, the exception propagates."""
         svc = _make_service()
 
@@ -64,7 +64,7 @@ class TestEncodeBatchRetry:
     """encode_batch() retries once on RuntimeError then succeeds or propagates."""
 
     @patch.dict("os.environ", {}, clear=True)
-    def test_encode_batch_retries_on_runtime_error(self) -> None:
+    def test_evil3_encode_batch_retries_on_runtime_error(self) -> None:
         """First call raises RuntimeError; retry succeeds after encoder reload."""
         svc = _make_service()
 
@@ -83,7 +83,7 @@ class TestEncodeBatchRetry:
         assert mock_encoder.encode.call_count == 2
 
     @patch.dict("os.environ", {}, clear=True)
-    def test_encode_batch_empty_skips_encoder(self) -> None:
+    def test_sad1_encode_batch_empty_skips_encoder(self) -> None:
         """Empty input returns [] without touching the encoder."""
         svc = _make_service()
         result = svc.encode_batch([])

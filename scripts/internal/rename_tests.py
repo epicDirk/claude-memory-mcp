@@ -87,15 +87,15 @@ def extract_functions(content: str) -> list[dict]:
     functions = []
     i = 0
     while i < len(lines):
-        match = re.match(r'^(async )?def (test_\w+)\(', lines[i])
+        match = re.match(r'^(\s*)(async )?def (test_\w+)\(', lines[i])
         if match:
-            func_name = match.group(2)
+            func_name = match.group(3)
             start_line = i
             # Collect function body until next function or class or end
             body_lines = [lines[i]]
             i += 1
             while i < len(lines):
-                if re.match(r'^(async )?def test_', lines[i]) or re.match(r'^class ', lines[i]):
+                if re.match(r'^\s*(async )?def test_', lines[i]) or re.match(r'^\s*class ', lines[i]):
                     break
                 body_lines.append(lines[i])
                 i += 1

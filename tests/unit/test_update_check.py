@@ -116,26 +116,26 @@ class TestCheckForUpdatesHappy:
 class TestIsNewer:
     """Version comparison edge cases."""
 
-    def test_newer_major(self) -> None:
+    def test_happy_newer_major(self) -> None:
         assert _is_newer("2.0.0", "1.0.0") is True
 
-    def test_same_version(self) -> None:
+    def test_happy_same_version(self) -> None:
         assert _is_newer("1.0.0", "1.0.0") is False
 
-    def test_older_version(self) -> None:
+    def test_happy_older_version(self) -> None:
         assert _is_newer("0.9.0", "1.0.0") is False
 
-    def test_garbage_input(self) -> None:
+    def test_happy_garbage_input(self) -> None:
         assert _is_newer("not.a.version", "1.0.0") is False
 
-    def test_empty_strings(self) -> None:
+    def test_sad1_empty_strings(self) -> None:
         assert _is_newer("", "") is False
 
 
 class TestReadLocalVersion:
     """VERSION file reading."""
 
-    def test_missing_file_returns_fallback(self) -> None:
+    def test_evil1_missing_file_returns_fallback(self) -> None:
         with patch("claude_memory.update_check._VERSION_FILE") as mock_path:
             mock_path.read_text.side_effect = FileNotFoundError
             assert _read_local_version() == "0.0.0"

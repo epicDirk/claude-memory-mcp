@@ -11,7 +11,7 @@ class TestBackupRestore:
     @patch("backup_restore.subprocess.run")
     @patch("backup_restore.os.path.exists")
     @patch("backup_restore.os.makedirs")
-    def test_backup_host_mode(self, mock_makedirs, mock_exists, mock_run):
+    def test_happy_backup_host_mode(self, mock_makedirs, mock_exists, mock_run):
         # Setup: Host mode (paths don't exist in /mnt)
         mock_exists.return_value = False
         mock_run.return_value = MagicMock(returncode=0)
@@ -34,7 +34,7 @@ class TestBackupRestore:
     @patch("backup_restore.subprocess.run")
     @patch("backup_restore.os.path.exists")
     @patch("backup_restore.os.makedirs")
-    def test_backup_container_mode(self, mock_makedirs, mock_exists, mock_run):
+    def test_happy_backup_container_mode(self, mock_makedirs, mock_exists, mock_run):
         # Setup: Container mode (/mnt paths exist)
         # We need to simulate exists returning True for the specific mount paths
         def side_effect(path):

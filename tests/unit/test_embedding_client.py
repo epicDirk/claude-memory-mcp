@@ -8,7 +8,7 @@ from claude_memory.embedding import EmbeddingService
 
 class TestEmbeddingClient:
     @patch.dict(os.environ, {"EMBEDDING_API_URL": "http://mock-api"})
-    def test_init_remote(self):
+    def test_evil1_init_remote(self):
         """Test that init doesn't load model if API URL is set"""
         service = EmbeddingService()
         # Should NOT load encoder yet
@@ -20,7 +20,7 @@ class TestEmbeddingClient:
 
     @patch.dict(os.environ, {"EMBEDDING_API_URL": "http://mock-api"})
     @patch("claude_memory.embedding.httpx.Client")
-    def test_encode_remote(self, mock_client_cls):
+    def test_happy_encode_remote(self, mock_client_cls):
         """Test that encode calls the API"""
         service = EmbeddingService()
 

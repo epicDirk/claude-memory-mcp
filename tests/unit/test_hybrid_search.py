@@ -78,7 +78,7 @@ class TestHybridSearchPipeline:
     """Tests covering the hybrid default path (strategy=None)."""
 
     @pytest.mark.asyncio()
-    async def test_default_search_always_hits_vector_store(self, service) -> None:
+    async def test_sad1_default_search_always_hits_vector_store(self, service) -> None:
         """strategy=None always calls vector_store.search."""
         service.vector_store.search.return_value = _vector_results("a")
         service.router.classify.return_value = QueryIntent.SEMANTIC
@@ -89,7 +89,7 @@ class TestHybridSearchPipeline:
         service.vector_store.search.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_temporal_intent_triggers_graph_enrichment(self, service: MemoryService) -> None:
+    async def test_happy_temporal_intent_triggers_graph_enrichment(self, service: MemoryService) -> None:
         """TEMPORAL intent triggers query_timeline alongside vector search."""
         service.vector_store.search.return_value = _vector_results("a")
         service.router.classify.return_value = QueryIntent.TEMPORAL
@@ -105,7 +105,7 @@ class TestHybridSearchPipeline:
         service.vector_store.search.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_relational_intent_triggers_path_enrichment(self, service: MemoryService) -> None:
+    async def test_happy_relational_intent_triggers_path_enrichment(self, service: MemoryService) -> None:
         """RELATIONAL intent with quoted entities triggers traverse_path."""
         service.vector_store.search.return_value = _vector_results("a")
         service.router.classify.return_value = QueryIntent.RELATIONAL
@@ -123,7 +123,7 @@ class TestHybridSearchPipeline:
         mock_tp.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_associative_intent_triggers_activation(self, service: MemoryService) -> None:
+    async def test_happy_associative_intent_triggers_activation(self, service: MemoryService) -> None:
         """ASSOCIATIVE intent runs spreading activation with vector seeds."""
         vec_results = _vector_results("a", "b")
         service.vector_store.search.return_value = vec_results
@@ -141,7 +141,7 @@ class TestHybridSearchPipeline:
         assert len(results) > 0
 
     @pytest.mark.asyncio()
-    async def test_semantic_intent_skips_graph_enrichment(self, service: MemoryService) -> None:
+    async def test_sad2_semantic_intent_skips_graph_enrichment(self, service: MemoryService) -> None:
         """SEMANTIC intent → vector-only, no graph enrichment methods called."""
         service.vector_store.search.return_value = _vector_results("a")
         service.router.classify.return_value = QueryIntent.SEMANTIC
@@ -156,7 +156,7 @@ class TestHybridSearchPipeline:
         assert len(results) == 1
 
     @pytest.mark.asyncio()
-    async def test_retrieval_strategy_always_populated(self, service: MemoryService) -> None:
+    async def test_happy_retrieval_strategy_always_populated(self, service: MemoryService) -> None:
         """retrieval_strategy is never empty/missing on results."""
         service.vector_store.search.return_value = _vector_results("a")
         service.router.classify.return_value = QueryIntent.SEMANTIC
@@ -174,7 +174,7 @@ class TestHybridSearchPipeline:
             )
 
     @pytest.mark.asyncio()
-    async def test_score_never_hardcoded_zero_for_hybrid_with_vector_match(
+    async def test_happy_score_never_hardcoded_zero_for_hybrid_with_vector_match(
         self, service: MemoryService
     ) -> None:
         """score > 0 when a vector match exists (the original bug)."""
@@ -194,7 +194,7 @@ class TestHybridSearchPipeline:
                 assert r.score > 0
 
     @pytest.mark.asyncio()
-    async def test_strategy_auto_logs_deprecation(
+    async def test_happy_strategy_auto_logs_deprecation(
         self, service: MemoryService, caplog: pytest.LogCaptureFixture
     ) -> None:
         """strategy='auto' logs deprecation warning, runs hybrid path."""
@@ -210,7 +210,7 @@ class TestHybridSearchPipeline:
         assert len(results) == 1
 
     @pytest.mark.asyncio()
-    async def test_temporal_window_days_default(self, service: MemoryService) -> None:
+    async def test_sad3_temporal_window_days_default(self, service: MemoryService) -> None:
         """temporal_window_days=7 default is applied."""
         service.vector_store.search.return_value = _vector_results("a")
         service.router.classify.return_value = QueryIntent.TEMPORAL
@@ -227,7 +227,7 @@ class TestHybridSearchPipeline:
         assert window == 7
 
     @pytest.mark.asyncio()
-    async def test_temporal_exhausted_flag(self, service: MemoryService) -> None:
+    async def test_happy_temporal_exhausted_flag(self, service: MemoryService) -> None:
         """temporal_exhausted is True when results < limit."""
         service.vector_store.search.return_value = _vector_results("a")
         service.router.classify.return_value = QueryIntent.TEMPORAL
@@ -522,7 +522,7 @@ class TestIncludeMetaEnvelope:
     """Test the HybridSearchResponse envelope via search_memory MCP tool."""
 
     @pytest.mark.asyncio()
-    async def test_include_meta_returns_hybrid_response(self) -> None:
+    async def test_happy_include_meta_returns_hybrid_response(self) -> None:
         """include_meta=True with temporal intent returns metadata envelope."""
         from claude_memory.schema import SearchResult
 
@@ -562,7 +562,7 @@ class TestIncludeMetaEnvelope:
         assert "suggestion" in result["meta"]
 
     @pytest.mark.asyncio()
-    async def test_include_meta_false_returns_plain_list(self) -> None:
+    async def test_happy_include_meta_false_returns_plain_list(self) -> None:
         """include_meta=False (default) returns plain list of dicts."""
         from claude_memory.schema import SearchResult
 
