@@ -30,7 +30,7 @@ A long-term memory system for Claude, built as a Model Context Protocol (MCP) se
 - **Activation**: Spreading activation engine for associative retrieval
 - **Routing**: Rule-based query intent classification
 - **Dashboard**: `Streamlit` for visualization + diagnostics
-- **CI/CD**: `tox` (5 tiers: pulse, gate, forge, hammer, polish)
+- **CI/CD**: `tox` (5 tiers: pulse, gate, hammer, polish, reaper)
 
 ## 🏁 Quick Start
 
@@ -94,4 +94,4 @@ Detailed manuals are located in `docs/`:
 
 > "No code without a git pre commit + plethora of unit tests + mercenary checks."
 
-This project adheres to **The Gold Stack** — a 16-tool TDD/CI/CD suite across 5 tiers. See `tox.ini` and `.pre-commit-config.yaml`.
+This project adheres to **The Gold Stack** — a 5-tier TDD/CI/CD suite. See `tox.ini` and `.pre-commit-config.yaml`.

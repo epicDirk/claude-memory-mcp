@@ -141,7 +141,7 @@ Run `tox -e pulse` — this executes all checks in one command:
 3.  **Mypy**: Static type checking (30 source files, strict mode).
 4.  **Pytest**: 463+ unit tests, ~98% coverage (≥30% threshold).
 
-Full 5-tier Gold Stack: `tox -e pulse` (lint+test), `tox -e gate` (hypothesis+diff-cover), `tox -e forge` (mutation), `tox -e hammer` (security), `tox -e polish` (docs+typos).
+Full 5-tier Gold Stack: `tox -e pulse` (lint+test), `tox -e gate` (hypothesis+diff-cover), `tox -e hammer` (security), `tox -e polish` (docs+typos), `tox -e reaper` (dead code).
 
 **E2E UAT**: `python tests/e2e_functional.py` — 74-check lifecycle across 31 phases against the live Docker stack.
 

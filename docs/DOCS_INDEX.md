@@ -16,7 +16,7 @@ This is the master table of contents for all Claude Memory MCP documentation. Us
 | FalkorDB nodes (post-P0 brain)        | 700                                | Feb 14 |
 | FalkorDB edges (post-P0 brain)        | 1253                               | Feb 14 |
 | Qdrant vectors (post-P0 brain)        | 464                                | Feb 14 |
-| Gold Stack tiers                      | 5 (pulse/gate/forge/hammer/polish) | Feb 14 |
+| Gold Stack tiers                      | 5 (pulse/gate/hammer/polish/reaper)| Feb 14 |
 
 > **Update rule**: When any of these numbers change, update this table first, then propagate to the docs that reference them (mainly README.md, ARCHITECTURE.md, REHYDRATION_DOCUMENT.md).
 

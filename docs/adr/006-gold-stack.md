@@ -1,17 +1,1 @@
-# ADR-006: Gold Stack Quality Gate
-
-**Status:** Accepted
-**Date:** 2026-02-04
-**Context:** The project needed a mandatory, non-negotiable quality gate to prevent regressions and enforce code standards across all commits.
-**Decision:** Adopt the "Gold Stack" — a 16-tool TDD/CI suite organized into 4 tiers:
-
-- **Pulse** (`pytest`, `ruff`, `ruff-format`): Fast feedback loop (~30s)
-- **Gate** (`mypy`, `bandit`, `safety`, `codespell`): Security and type safety
-- **Hammer** (`hypothesis`, `coverage`, `mutatest`): Deep testing
-- **Polish** (`pre-commit`, `detect-secrets`, `tox`): Final gate
-
-**Consequences:**
-
-- All commits must pass pre-commit hooks (ruff, codespell, detect-secrets).
-- `tox -e pulse` runs the fast feedback loop.
-- Mutation testing (via `mutatest`) validates test quality, not just coverage.
+# ADR-006: Gold Stack Quality Gate\r\n\r\n**Status:** Accepted (Updated March 2026)\r\n**Date:** 2026-02-04\r\n**Context:** The project needed a mandatory, non-negotiable quality gate to prevent regressions and enforce code standards across all commits.\r\n**Decision:** Adopt the \"Gold Stack\" — a 5-tier TDD/CI suite:\r\n\r\n- **Pulse** (`pytest`, `ruff`, `ruff-format`, `mypy`): Fast feedback loop (~30s)\r\n- **Gate** (`hypothesis`, `diff-cover`): Property testing + changed-line coverage\r\n- **Hammer** (`bandit`, `pip-audit`, `detect-secrets`): Security scanning\r\n- **Polish** (`codespell`, `docstr-coverage`): Documentation + typo checks\r\n- **Reaper** (`vulture`): Dead code detection\r\n\r\n**Removals (March 2026):** `semgrep` (rich version conflict), `crosshair-tool` (never wired), `safety` (replaced by pip-audit), `black`/`isort` (replaced by ruff).\r\n\r\n**Consequences:**\r\n\r\n- All commits must pass pre-commit hooks (ruff, codespell, detect-secrets).\r\n- `tox -e pulse` runs the fast feedback loop.\r\n- `tox -e reaper` hunts unused code with vulture.\r\n
