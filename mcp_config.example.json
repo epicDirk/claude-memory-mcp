@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "claude-memory": {
+      "command": "powershell.exe",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "${PROJECT_ROOT}\\scripts\\run_mcp_server.ps1"],
+      "env": {
+        "PYTHONPATH": "${PROJECT_ROOT}\\src",
+        "FALKORDB_HOST": "localhost",
+        "FALKORDB_PORT": "6379",
+        "FALKORDB_PASSWORD": "",
+        "QDRANT_HOST": "localhost",
+        "QDRANT_PORT": "6333",
+        "EMBEDDING_API_URL": "http://localhost:8001"
+      }
+    }
+  }
+}
