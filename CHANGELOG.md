@@ -35,6 +35,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - `requirements.lock` — Bumped `tomli` 2.0.2 → 2.2.1 to resolve hard conflict
   with `pip-audit==2.10.0` (which requires `tomli>=2.2.1`).
+- `requirements.lock` + `pyproject.toml` — Removed `semgrep==1.151.0` (pins
+  `rich~=13.5.2`, irreconcilable with 12+ packages needing `rich>=14`). Semgrep
+  was never wired into tox or CI — unused dev dependency.
 - **P0-0** (`6167ae6`) — Re-embedded all 464 entities after vector store rebuild.
 - **P0-1** (`eea3ed8`) — Surface `PRECEDED_BY` errors in `EntityCommitReceipt.warnings`.
 - **P0-2** (`26d7870`) — Set FalkorDB `maxmemory 1GB` + `noeviction` via `REDIS_ARGS`.

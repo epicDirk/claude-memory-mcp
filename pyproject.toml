@@ -1,9 +1,21 @@
 [project]
 name = "claude-memory-mcp"
-version = "0.1.0"
-description = "Custom MCP server for Claude's Hybrid Memory System"
+version = "1.0.0"
+description = "MCP server giving Claude persistent memory via knowledge graph + vector search"
 requires-python = ">=3.12"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "iikarus"}]
+keywords = ["mcp", "claude", "memory", "knowledge-graph", "vector-search", "falkordb", "qdrant"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
+    "graphiti-core>=0.5.0,<1.0.0",
     "falkordb>=1.0.0",
     "mcp>=0.1.0",
     "pydantic>=2.0.0",
@@ -17,8 +29,13 @@ dependencies = [
     "fastapi>=0.100.0",
     "uvicorn>=0.20.0",
     "httpx>=0.26.0",
-    "nest-asyncio>=1.6.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/iikarus/claude-memory-mcp"
+Repository = "https://github.com/iikarus/claude-memory-mcp"
+Documentation = "https://github.com/iikarus/claude-memory-mcp/tree/master/docs"
+Issues = "https://github.com/iikarus/claude-memory-mcp/issues"
 
 [project.scripts]
 claude-memory = "claude_memory.server:main"
@@ -46,8 +63,7 @@ dev = [
     "mutatest>=3.0.0",
     # 10. Symbolic Execution
     "crosshair-tool>=0.0.74",
-    # 11. Static Analysis
-    "semgrep>=1.50.0",
+    # 11. Static Analysis (semgrep removed — pins rich~=13.5.x, conflicts with 12+ packages)
     # 12. Security Linter
     "bandit>=1.7.0",
     # 13. Dependency Security
@@ -118,17 +134,7 @@ exclude_lines = [
     'class .*\bProtocol\):',
     '@(abc\.)?abstractmethod',
 ]
-fail_under = 30
-
-[tool.coverage.paths]
-source = [
-    "src/claude_memory",
-    "**/site-packages/claude_memory",
-]
-dashboard = [
-    "src/dashboard",
-    "**/site-packages/dashboard",
-]
+fail_under = 70
 
 [[tool.mypy.overrides]]
 module = [
@@ -136,6 +142,7 @@ module = [
     "pyvis.*",
     "streamlit.*",
     "sentence_transformers.*",
+    "graphiti_core.*"
 ]
 ignore_missing_imports = true
 
@@ -147,6 +154,10 @@ allow_untyped_defs = true
 testpaths = ["tests"]
 asyncio_mode = "auto"
 addopts = "-v"
+filterwarnings = [
+    "ignore::coverage.exceptions.CoverageWarning",
+    "ignore::requests.exceptions.RequestsDependencyWarning",
+]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
@@ -156,7 +167,7 @@ markers = [
 
 [tool.codespell]
 skip = "*.lock,*.json,*.html"
-ignore-words-list = "ne,falkordb"
+ignore-words-list = "ne,falkordb,nd"
 
 [tool.docstr_coverage]
 skip_magic = true
