@@ -43,6 +43,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `hypothesis-jsonschema`, `isort` (handled by ruff), `mutmut` (not in tox),
   `safety` + `safety-schemas` (replaced by pip-audit), `schemathesis`.
   Also removed `crosshair-tool` from `pyproject.toml` dev deps.
+- Removed `graphiti-core` from production deps and lockfile — zero imports in
+  `src/`, was a planned integration that was never implemented.
+- Created `vulture_whitelist.py` for `tox -e reaper` dead code detection tier.
+- Docs cascade — corrected Gold Stack tiers (forge→reaper) across 6 docs.
+- Restored comprehensive README (lost during force push) + SEO optimization.
 - **P0-0** (`6167ae6`) — Re-embedded all 464 entities after vector store rebuild.
 - **P0-1** (`eea3ed8`) — Surface `PRECEDED_BY` errors in `EntityCommitReceipt.warnings`.
 - **P0-2** (`26d7870`) — Set FalkorDB `maxmemory 1GB` + `noeviction` via `REDIS_ARGS`.

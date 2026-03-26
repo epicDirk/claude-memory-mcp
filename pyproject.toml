@@ -15,7 +15,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-    "graphiti-core>=0.5.0,<1.0.0",
+    # graphiti-core removed — zero imports in src/ (was a planned integration, never used)
     "falkordb>=1.0.0",
     "mcp>=0.1.0",
     "pydantic>=2.0.0",
