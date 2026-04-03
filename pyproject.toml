@@ -1,12 +1,12 @@
 [project]
-name = "claude-memory-mcp"
-version = "1.0.0"
-description = "MCP server giving Claude persistent memory via knowledge graph + vector search"
+name = "dragon-brain"
+version = "1.0.1"
+description = "Open-source long-term memory MCP server with knowledge graph and vector search"
 requires-python = ">=3.12"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [{name = "iikarus"}]
-keywords = ["mcp", "claude", "memory", "knowledge-graph", "vector-search", "falkordb", "qdrant"]
+keywords = ["dragon-brain", "mcp", "mcp-server", "ai-memory", "persistent-memory", "knowledge-graph", "vector-search", "falkordb", "qdrant", "ai-agent", "claude", "llm"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -15,7 +15,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-    # graphiti-core removed — zero imports in src/ (was a planned integration, never used)
+    "graphiti-core>=0.5.0,<1.0.0",
     "falkordb>=1.0.0",
     "mcp>=0.1.0",
     "pydantic>=2.0.0",
@@ -32,12 +32,13 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/iikarus/claude-memory-mcp"
-Repository = "https://github.com/iikarus/claude-memory-mcp"
-Documentation = "https://github.com/iikarus/claude-memory-mcp/tree/master/docs"
-Issues = "https://github.com/iikarus/claude-memory-mcp/issues"
+Homepage = "https://github.com/iikarus/Dragon-Brain"
+Repository = "https://github.com/iikarus/Dragon-Brain"
+Documentation = "https://github.com/iikarus/Dragon-Brain/tree/master/docs"
+Issues = "https://github.com/iikarus/Dragon-Brain/issues"
 
 [project.scripts]
+dragon-brain = "claude_memory.server:main"
 claude-memory = "claude_memory.server:main"
 
 [project.optional-dependencies]
@@ -61,8 +62,10 @@ dev = [
     "diff-cover>=9.0.0",
     # 9. Mutation Testing (Windows compatible)
     "mutatest>=3.0.0",
-    # 10. Symbolic Execution (crosshair-tool removed — never wired into tox or scripts)
-    # 11. Static Analysis (semgrep removed — pins rich~=13.5.x, conflicts with 12+ packages)
+    # 10. Symbolic Execution
+    "crosshair-tool>=0.0.74",
+    # 11. Static Analysis
+    "semgrep>=1.50.0",
     # 12. Security Linter
     "bandit>=1.7.0",
     # 13. Dependency Security
@@ -160,6 +163,7 @@ filterwarnings = [
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
+    "invariant: marks tests as system invariant checks",
 ]
 
 

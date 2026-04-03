@@ -1,63 +1,85 @@
-# Dragon Brain — Persistent Memory for AI Agents (MCP Server)
+# Dragon Brain
+
+[English](README.md) | [中文](README.zh-CN.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [Português](README.pt-BR.md) | [Deutsch](README.de.md) | [Français](README.fr.md)
+
+**Persistent memory infrastructure for AI agents.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI](https://github.com/iikarus/Dragon-Brain/actions/workflows/ci.yml/badge.svg)](https://github.com/iikarus/Dragon-Brain/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-1118%20passing-brightgreen)]()
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](docker-compose.yml)
+[![MCP Tools](https://img.shields.io/badge/MCP%20tools-33-green.svg)]()
+[![Tests](https://img.shields.io/badge/tests-1%2C165%20passing-brightgreen)]()
 [![Gauntlet](https://img.shields.io/badge/gauntlet-A%E2%88%92%20(95%2F100)-blue)]()
-[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue?logo=python&logoColor=white)]()
-[![Docker](https://img.shields.io/badge/docker-ready-blue?logo=docker&logoColor=white)]()
-[![MCP Tools: 31](https://img.shields.io/badge/MCP_tools-31-purple)]()
-[![GPU: CUDA](https://img.shields.io/badge/GPU-CUDA_supported-green?logo=nvidia&logoColor=white)]()
-[![MCP Compatible](https://img.shields.io/badge/protocol-MCP-brightgreen)]()
+[![GPU](https://img.shields.io/badge/GPU-CUDA%20supported-orange.svg)]()
+[![GitHub stars](https://img.shields.io/github/stars/iikarus/Dragon-Brain)](https://github.com/iikarus/Dragon-Brain/stargazers)
 
-**Give your AI persistent memory across conversations — an open-source long-term memory MCP server with knowledge graph and vector search.**
+> **1,599 memories** · **33 MCP tools** · **Graph + Vector hybrid retrieval** · **sub-200ms search** · **1,165 tests**
 
-> **MODEL AGNOSTIC** — Works with any MCP-compatible client: Claude Desktop, Claude Code,
-> Gemini CLI, Cursor, Windsurf, Cline, VS Code Copilot, or any LLM that speaks
-> [Model Context Protocol](https://modelcontextprotocol.io/).
+An open-source MCP server that gives any LLM long-term memory using a knowledge graph + vector search hybrid. Store entities, observations, and relationships — then recall them semantically across sessions. Works with any MCP client: Claude Code, Claude Desktop, Cursor, Windsurf, Cline, Gemini CLI, VS Code Copilot, or any LLM that speaks [Model Context Protocol](https://modelcontextprotocol.io/).
 
-A production-ready [MCP server](https://modelcontextprotocol.io/) that combines a
-**knowledge graph** ([FalkorDB](https://www.falkordb.com/)) with **vector search**
-([Qdrant](https://qdrant.tech/)) to give AI agents long-term memory. Store entities,
-observations, and relationships — then recall them semantically across sessions.
-An autonomous background agent ("The Librarian") clusters and synthesizes memories
-into higher-order concepts. Built for developers who want their AI to *remember*.
+Unlike flat chat history or simple RAG, Dragon Brain understands *relationships* between memories — not just similarity. An autonomous agent ("The Librarian") periodically clusters and synthesizes memories into higher-order concepts.
 
-![Dragon Brain Memory Graph Dashboard showing 1492 nodes and 2998 relationships in an interactive Streamlit visualization](docs/dashboard.png)
+![Dragon Brain Dashboard — 1,599 nodes, 3,120 relationships, graph visualization and health metrics](docs/dashboard.png)
 
 ## Quick Start
 
-> **Detailed setup**: See [docs/SETUP.md](docs/SETUP.md) for comprehensive instructions including prerequisites, platform-specific notes, and troubleshooting.
+> **Prerequisites:** [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/).
+> **Detailed setup:** See [docs/SETUP.md](docs/SETUP.md) for comprehensive instructions including prerequisites, platform-specific notes, and troubleshooting.
 
 ### 1. Start the Services
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
-> **GPU users**: For NVIDIA GPU acceleration, use `docker compose --profile gpu up -d` instead.
-
 This spins up 4 containers:
-- **FalkorDB** (knowledge graph) on port 6379
-- **Qdrant** (vector search) on port 6333
-- **Embedding API** (sentence-transformers, CPU by default) on port 8001
-- **Streamlit Dashboard** on port 8501
+- **FalkorDB** (knowledge graph) — port 6379
+- **Qdrant** (vector search) — port 6333
+- **Embedding API** (BGE-M3, CPU default) — port 8001
+- **Dashboard** (Streamlit) — port 8501
 
-### 2. Connect Your MCP Client
+> **GPU users:** `docker compose --profile gpu up -d` for NVIDIA CUDA acceleration.
 
-**Claude Desktop** — Add this to your `claude_desktop_config.json`:
+Verify everything is healthy:
+```bash
+docker ps --filter "name=claude-memory"
+```
+
+<details>
+<summary><b>Alternative: Install via pip</b></summary>
+
+```bash
+pip install dragon-brain
+```
+
+> **Note:** Dragon Brain requires FalkorDB and Qdrant running as Docker services.
+> The pip package installs the MCP server — run `docker compose up -d` first for the infrastructure.
+> The embedding model (~1GB) is served via Docker, not downloaded locally.
+
+</details>
+
+### 2. Connect Your AI Agent
+
+**Claude Code (recommended):**
+```bash
+claude mcp add dragon-brain -- python -m claude_memory.server
+```
+
+<details>
+<summary><b>Claude Desktop / Other MCP Clients</b></summary>
+
+Add to your MCP client config:
 
 ```json
 {
   "mcpServers": {
-    "claude-memory": {
-      "command": "powershell.exe",
-      "args": ["-ExecutionPolicy", "Bypass", "-File", "path/to/scripts/run_mcp_server.ps1"],
+    "dragon-brain": {
+      "command": "python",
+      "args": ["-m", "claude_memory.server"],
       "env": {
-        "PYTHONPATH": "path/to/src",
         "FALKORDB_HOST": "localhost",
         "FALKORDB_PORT": "6379",
-        "FALKORDB_PASSWORD": "your-password",
         "QDRANT_HOST": "localhost",
         "QDRANT_PORT": "6333",
         "EMBEDDING_API_URL": "http://localhost:8001"
@@ -67,21 +89,19 @@ This spins up 4 containers:
 }
 ```
 
-See `mcp_config.example.json` for a working template.
+See `mcp_config.example.json` for a full template. This server works with any MCP-compatible client via stdio transport.
 
-> **Other MCP clients**: This server works with any MCP-compatible client. See your
-> client's documentation for MCP server configuration. The server communicates via
-> stdio by default.
+</details>
 
-### 3. Start Using It
+### 3. Start Remembering
 
-Once connected, your AI automatically has access to 31 memory tools. Just talk naturally:
+```
+You: "Remember that I'm building Atlas in Rust and I prefer functional patterns."
+AI:  [creates entity "Atlas", adds observations about Rust and functional patterns]
 
-> "Remember that I'm working on a Rust project called Atlas and I prefer functional patterns."
-
-> "What do you know about my learning style?"
-
-> "Show me everything connected to the Atlas project."
+You (next session): "What do you know about my projects?"
+AI:  "You're building Atlas in Rust with a functional approach..." [recalled from graph]
+```
 
 ## What It Does
 
@@ -92,25 +112,27 @@ Once connected, your AI automatically has access to 31 memory tools. Just talk n
 | **Graph traversal** | Follows relationships between memories — "what's connected to Project X?" |
 | **Time travel** | Queries your memory graph at any point in time — "what did I know last Tuesday?" |
 | **Auto-clustering** | Background agent discovers patterns and creates concept summaries |
+| **Relationship discovery** | Semantic Radar finds missing connections by comparing vector similarity against graph distance |
 | **Session tracking** | Remembers conversation context and breakthroughs |
 
 ## How It Compares
 
-| Feature | Dragon Brain V2 | cipher | basic-memory | mcp-knowledge-graph | context-portal | nocturne_memory |
+| Feature | Dragon Brain | cipher | basic-memory | mcp-knowledge-graph | context-portal | nocturne_memory |
 |---------|:-:|:-:|:-:|:-:|:-:|:-:|
-| **Real Graph Database** | FalkorDB (Cypher) | - | - | JSON files | - | - |
-| **Vector Search** | Qdrant (HNSW) | - | SQLite FTS | - | SQLite (vectors) | - |
-| **Hybrid Search (RRF)** | ✓ | - | - | - | - | - |
-| **Autonomous Clustering** | ✓ (DBSCAN) | - | - | - | - | - |
-| **Time Travel Queries** | ✓ | - | - | - | - | - |
-| **GPU Acceleration** | CUDA (BGE-M3) | - | - | - | - | - |
-| **Typed Relationships** | Weighted edges | - | - | Edges | - | - |
-| **Session Tracking** | ✓ | - | - | - | ✓ | - |
+| **Real Graph Database** | FalkorDB (Cypher) | — | — | JSON files | — | — |
+| **Vector Search** | Qdrant (HNSW) | — | SQLite FTS | — | SQLite (vectors) | — |
+| **Hybrid Search (RRF)** | ✓ | — | — | — | — | — |
+| **Autonomous Clustering** | ✓ (DBSCAN) | — | — | — | — | — |
+| **Relationship Discovery** | ✓ (Semantic Radar) | — | — | — | — | — |
+| **Time Travel Queries** | ✓ | — | — | — | — | — |
+| **GPU Acceleration** | CUDA (BGE-M3) | — | — | — | — | — |
+| **Typed Relationships** | Weighted edges | — | — | Edges | — | — |
+| **Session Tracking** | ✓ | — | — | — | ✓ | — |
 | **Model Agnostic** | Any MCP client | ✓ | ✓ | ✓ | ✓ | ✓ |
-| **Test Suite** | 1,118 tests | - | - | - | - | - |
-| **Mutation Testing** | ✓ | - | - | - | - | - |
-| **Dashboard** | Streamlit | - | - | - | - | ✓ |
-| **MCP Tools** | 31 | - | - | - | - | - |
+| **Test Suite** | 1,165 tests | — | — | — | — | — |
+| **Mutation Testing** | ✓ | — | — | — | — | — |
+| **Dashboard** | Streamlit | — | — | — | — | ✓ |
+| **MCP Tools** | 33 | — | — | — | — | — |
 
 > *Feature comparison based on public READMEs as of March 2026. Open an issue if anything is inaccurate.*
 
@@ -132,6 +154,61 @@ Once connected, your AI automatically has access to 31 memory tools. Just talk n
 - **Cross-Model Workflows** — Start a conversation in Claude, continue in Gemini CLI,
   review in Cursor. The memory persists across all MCP-compatible clients.
 
+## Architecture
+
+```mermaid
+graph TB
+    Client["Any MCP Client<br/>(Claude, Cursor, Cline, ...)"]
+    Server["Dragon Brain MCP Server<br/>33 tools · FastMCP"]
+    FalkorDB["FalkorDB<br/>Knowledge Graph · Cypher"]
+    Qdrant["Qdrant<br/>Vector Search · HNSW"]
+    Embeddings["Embedding Service<br/>BGE-M3 · 1024d"]
+    Librarian["The Librarian<br/>Auto-clustering · DBSCAN"]
+    Dashboard["Dashboard<br/>Streamlit · Graph Viz"]
+
+    Client <-->|"MCP (stdio/SSE)"| Server
+    Server --> FalkorDB
+    Server --> Qdrant
+    Server --> Embeddings
+    Server -.->|"periodic"| Librarian
+    Librarian --> FalkorDB
+    Dashboard --> FalkorDB
+    Dashboard --> Qdrant
+```
+
+- **Graph Layer**: FalkorDB stores entities, relationships, and observations as a Cypher-queryable knowledge graph
+- **Vector Layer**: Qdrant stores 1024d embeddings for semantic similarity search
+- **Hybrid Search**: Queries hit both layers, merged via Reciprocal Rank Fusion (RRF) with spreading activation enrichment
+- **Semantic Radar**: Discovers missing relationships by comparing vector similarity against graph distance
+- **The Librarian**: Autonomous agent that clusters memories and synthesizes higher-order concepts
+
+## Project Structure
+
+```
+Dragon-Brain/
+├── src/
+│   ├── claude_memory/          # MCP server — 33 tools, services, repositories
+│   │   ├── server.py           # FastMCP entry point
+│   │   ├── tools.py            # MCP tool definitions
+│   │   ├── search.py           # Hybrid search (vector + graph + RRF)
+│   │   ├── repository.py       # FalkorDB graph operations
+│   │   ├── vector_store.py     # Qdrant vector operations
+│   │   ├── librarian.py        # Autonomous clustering agent
+│   │   ├── semantic_radar.py   # Relationship discovery via vector-graph gap analysis
+│   │   ├── temporal.py         # Time travel queries
+│   │   └── ...                 # Schema, embedding, analysis, etc.
+│   └── dashboard/              # Streamlit monitoring dashboard
+├── tests/
+│   ├── unit/                   # 1,165 tests (3-evil/1-sad/1-happy per function)
+│   └── gauntlet/               # Mutation, fuzz, property-based, concurrency tests
+├── docs/                       # Architecture, user manual, runbook, ADRs
+│   └── adr/                    # 7 Architecture Decision Records
+├── scripts/                    # Docker, backup, health check, e2e tests
+│   └── internal/               # 27 migration, verification, and repair scripts
+├── docker-compose.yml          # One-command setup (FalkorDB + Qdrant + Embeddings + Dashboard)
+└── pyproject.toml              # Python 3.12+, pip install -e ".[dev]"
+```
+
 ## MCP Tools (Top 10)
 
 | Tool | What It Does |
@@ -144,65 +221,16 @@ Once connected, your AI automatically has access to 31 memory tools. Just talk n
 | `get_neighbors` | Explore what's directly connected to an entity |
 | `point_in_time_query` | Query the graph as it existed at a specific timestamp |
 | `record_breakthrough` | Mark a significant learning moment for future reference |
-| `run_librarian_cycle` | Manually trigger the autonomous clustering and synthesis agent |
+| `semantic_radar` | Discover missing relationships via vector-graph gap analysis |
 | `graph_health` | Get stats on your memory graph — node counts, edge density, orphans |
 
-All 31 tools are documented in [docs/MCP_TOOL_REFERENCE.md](docs/MCP_TOOL_REFERENCE.md).
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────┐
-│           Any MCP-Compatible Client          │
-│       (Claude, Gemini CLI, Cursor, ...)      │
-└────────────────┬────────────────────────────┘
-                 │
-┌────────────────▼────────────────────────────┐
-│           MCP Server (FastMCP)               │
-│    31 tools · Service-Repository pattern     │
-├──────────────┬───────────────┬───────────────┤
-│  FalkorDB    │    Qdrant     │  Embedding    │
-│  (Graph DB)  │  (Vectors)    │  (BGE-M3)     │
-│  Cypher      │  HNSW Index   │  1024d        │
-└──────────────┴───────────────┴───────────────┘
-```
-
-- **Graph Layer**: FalkorDB stores entities, relationships, and observations as a Cypher-queryable knowledge graph
-- **Vector Layer**: Qdrant stores 1024d embeddings for semantic similarity search
-- **Hybrid Search**: Queries hit both layers and merge results using Reciprocal Rank Fusion (RRF) with spreading activation enrichment
-- **Autonomous Agent**: "The Librarian" runs DBSCAN clustering to discover concept groups and synthesize summaries
-
-## Project Structure
-
-```
-claude-memory-mcp/
-├── src/
-│   ├── claude_memory/          # MCP server — 31 tools, services, repositories
-│   │   ├── server.py           # FastMCP entry point
-│   │   ├── tools.py            # MCP tool definitions
-│   │   ├── search.py           # Hybrid search (vector + graph + RRF)
-│   │   ├── repository.py       # FalkorDB graph operations
-│   │   ├── vector_store.py     # Qdrant vector operations
-│   │   ├── librarian.py        # Autonomous clustering agent
-│   │   ├── temporal.py         # Time travel queries
-│   │   └── ...                 # Schema, embedding, analysis, etc.
-│   └── dashboard/              # Streamlit monitoring dashboard
-├── tests/
-│   ├── unit/                   # 1,118 tests (3-evil/1-sad/1-happy per function)
-│   └── gauntlet/               # Mutation, fuzz, property-based, concurrency tests
-├── docs/                       # Architecture, user manual, runbook, ADRs
-│   └── adr/                    # 7 Architecture Decision Records
-├── scripts/                    # Docker, backup, health check, e2e tests
-│   └── internal/               # 27 migration, verification, and repair scripts
-├── docker-compose.yml          # One-command setup (FalkorDB + Qdrant + Embeddings + Dashboard)
-└── pyproject.toml              # Python 3.12+, pip install -e ".[dev]"
-```
+All 33 tools are documented in [docs/MCP_TOOL_REFERENCE.md](docs/MCP_TOOL_REFERENCE.md).
 
 ## Quality
 
 This isn't a weekend hack. It's tested like production software:
 
-- **1,118 unit tests** across 77 files, 0 failures, 0 skipped
+- **1,165 unit tests** across 77 files, 0 failures, 0 skipped
 - **Mutation testing** — 2,270 mutants, 1,184 killed across 27 source files (3-evil/1-sad/1-happy per function)
 - **Property-based testing** — 38 Hypothesis properties
 - **Fuzz testing** — 30K+ inputs, 0 crashes
@@ -222,7 +250,7 @@ Claude is brilliant but forgets everything between conversations. Every new chat
 | Doc | What's In It |
 |-----|-------------|
 | [User Manual](docs/USER_MANUAL.md) | How to use each tool with examples |
-| [MCP Tool Reference](docs/MCP_TOOL_REFERENCE.md) | API reference: all 31 tools, params, return shapes |
+| [MCP Tool Reference](docs/MCP_TOOL_REFERENCE.md) | API reference: all 33 tools, params, return shapes |
 | [Architecture](docs/ARCHITECTURE.md) | System design, data model, component diagram |
 | [Maintenance Manual](docs/MAINTENANCE_MANUAL.md) | Backups, monitoring, troubleshooting |
 | [Runbook](docs/RUNBOOK.md) | 10 incident response recipes |
@@ -250,7 +278,7 @@ streamlit run src/dashboard/app.py
 ### Claude Code CLI
 
 ```bash
-claude mcp add claude-memory -- python -m claude_memory.server
+claude mcp add dragon-brain -- python -m claude_memory.server
 ```
 
 For environment variables, create a `.env` file or export them:
@@ -303,11 +331,12 @@ CPU mode works fine for most workloads — GPU mainly speeds up bulk embedding o
 <details>
 <summary><b>"No module named claude_memory" error</b></summary>
 
-The `PYTHONPATH` environment variable must point to the `src/` directory:
+Install in development mode: `pip install -e .`
+
+Or set the `PYTHONPATH` environment variable to point to the `src/` directory:
 ```bash
-export PYTHONPATH=/path/to/claude-memory-mcp/src
+export PYTHONPATH=/path/to/Dragon-Brain/src
 ```
-Or install in development mode: `pip install -e .`
 </details>
 
 <details>
@@ -323,17 +352,20 @@ docker exec claude-memory-mcp-graphdb-1 redis-cli GRAPH.QUERY claude_memory \
 ```
 </details>
 
+More: [docs/GOTCHAS.md](docs/GOTCHAS.md) · [docs/RUNBOOK.md](docs/RUNBOOK.md)
+
 ## Roadmap
 
 Dragon Brain is under active development. See the [CHANGELOG](docs/CHANGELOG.md) for
 recent updates.
 
 Current focus areas:
+- Semantic Radar — relationship discovery via vector-graph gap analysis
 - Drift detection and quality monitoring for long-lived graphs
 - Search result ranking improvements
 - Performance optimization for large graphs (10K+ nodes)
 
-Have an idea? [Open an issue](https://github.com/iikarus/claude-memory-mcp/issues).
+Have an idea? [Open an issue](https://github.com/iikarus/Dragon-Brain/issues).
 
 ## Contributing
 
@@ -341,9 +373,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for testing policy, code style, and how t
 
 ## Community
 
-- **Questions & Discussion**: [GitHub Discussions](https://github.com/iikarus/claude-memory-mcp/discussions)
-- **Bug Reports**: [GitHub Issues](https://github.com/iikarus/claude-memory-mcp/issues)
-- **Feature Requests**: [GitHub Issues](https://github.com/iikarus/claude-memory-mcp/issues)
+- **Questions & Discussion**: [GitHub Discussions](https://github.com/iikarus/Dragon-Brain/discussions)
+- **Bug Reports**: [GitHub Issues](https://github.com/iikarus/Dragon-Brain/issues)
+- **Feature Requests**: [GitHub Issues](https://github.com/iikarus/Dragon-Brain/issues)
 
 ## License
 
