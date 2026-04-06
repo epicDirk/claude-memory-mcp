@@ -136,23 +136,93 @@ AI:  "You're building Atlas in Rust with a functional approach..." [recalled fro
 
 > *Feature comparison based on public READMEs as of March 2026. Open an issue if anything is inaccurate.*
 
-## Use Cases
+## 🔥 Use Cases — See It In Action
 
-- **AI Power Users** — Track preferences, project context, and breakthroughs across
-  hundreds of conversations with any MCP-compatible AI. Never re-explain your setup.
-- **Software Development** — Remember architecture decisions, debugging sessions, and
-  codebase patterns. Your AI pair programmer actually learns your codebase over time.
-- **Research & Knowledge Management** — Build a living knowledge graph of papers,
-  concepts, and their connections. Semantic search finds "that thing about distributed
-  consensus" even if you never used those exact words.
-- **Multi-Agent Orchestration** — Share persistent memory across multiple AI agents
-  coordinating on complex workflows. One agent's discoveries are instantly available
-  to all others via the shared graph.
-- **Personal Knowledge Base** — A second brain that grows richer over time. The
-  Librarian autonomously discovers patterns and clusters related memories into
-  higher-order concepts.
-- **Cross-Model Workflows** — Start a conversation in Claude, continue in Gemini CLI,
-  review in Cursor. The memory persists across all MCP-compatible clients.
+> **Same Dragon Brain, different story.** Each demo shows a real scenario with example queries and results. [Browse all demos →](demos/)
+
+<table>
+<tr>
+<td align="center" width="25%">
+
+### ⚖️ [Legal Discovery](demos/legal-discovery/)
+Find contradictions across depositions. Trace hidden money flows. Surface leads no human found.
+
+</td>
+<td align="center" width="25%">
+
+### 🔬 [Research Lab](demos/research-lab/)
+Track your lab's evolving understanding. Replay intellectual journeys. Connect papers to experiments.
+
+</td>
+<td align="center" width="25%">
+
+### 🚀 [Startup CTO](demos/startup-cto/)
+Never lose a design decision. Trace incident root causes. Onboard new engineers instantly.
+
+</td>
+<td align="center" width="25%">
+
+### 🔍 [Investigative Journalist](demos/investigative-journalist/)
+Connect the dots across sources. Detect temporal clustering. Find leads you didn't know existed.
+
+</td>
+</tr>
+<tr>
+<td align="center">
+
+### 🎲 [Game Master](demos/game-master/)
+Remember 50 sessions of campaign history. Trace consequences. Manage dramatic irony.
+
+</td>
+<td align="center">
+
+### 🧠 [Personal Knowledge](demos/personal-knowledge/)
+Cross-domain connections across millennia. The Zettelkasten that actually thinks.
+
+</td>
+<td align="center">
+
+### 🛡️ [Cybersecurity SOC](demos/cybersecurity-soc/)
+Link IOCs, TTPs, and actors. Detect emerging campaigns. Threat intel that connects.
+
+</td>
+<td align="center">
+
+### 📦 [OSS Maintainer](demos/open-source-maintainer/)
+3 years of issues, PRs, and RFCs — instantly searchable. Institutional knowledge preserved.
+
+</td>
+</tr>
+<tr>
+<td align="center">
+
+### 📈 [Portfolio Manager](demos/portfolio-manager/)
+Track theses, correlations, and lessons. Replay your mental state from 6 months ago.
+
+</td>
+<td align="center">
+
+### 🏥 [Medical Practice](demos/medical-practice/)
+Connect symptoms, treatments, and outcomes across visits. Context your EHR buries.
+
+</td>
+<td align="center">
+
+### ⚙️ [Engineering R&D](demos/engineering-rnd/)
+Trace failure modes across subsystems. Link test results to design revisions.
+
+</td>
+<td align="center">
+
+### 📚 [Teacher](demos/teacher/) · 🎓 [Student](demos/university-student/)
+Track misconceptions across cohorts. Discover cross-course concept connections.
+
+</td>
+</tr>
+</table>
+
+> **Every demo uses the exact same Dragon Brain** — no plugins, no customization, no domain-specific code. Just data + queries + connections you didn't know existed.
+
 
 ## Architecture
 
