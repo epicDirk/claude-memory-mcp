@@ -29,6 +29,7 @@ dependencies = [
     "fastapi>=0.100.0",
     "uvicorn>=0.20.0",
     "httpx>=0.26.0",
+    "nest-asyncio>=1.6.0",
 ]
 
 [project.urls]
