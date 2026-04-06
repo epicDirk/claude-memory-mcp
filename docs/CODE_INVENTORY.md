@@ -1,6 +1,6 @@
 # Code Inventory
 
-A manifest of the project structure. Last updated: March 27, 2026.
+A manifest of the project structure. Last updated: April 7, 2026.
 
 ## Core Logic (`src/claude_memory/`)
 
@@ -15,10 +15,12 @@ A manifest of the project structure. Last updated: March 27, 2026.
 | `tools_extra.py`          | **Extra MCP Tools**. Additional tool registrations beyond the core set.                                                   |
 | `crud.py`                 | **CrudMixin**. Entity/relationship create, update, delete logic.                                                          |
 | `crud_maintenance.py`     | **CrudMaintenanceMixin**. Observation CRUD, background salience updates (fire-and-forget).                                |
-| `search.py`               | **SearchMixin**. Vector search, hologram retrieval, salience updates.                                                     |
+| `search.py`               | **SearchMixin**. Vector search, hologram retrieval, hybrid pipeline (ADR-007), salience updates.                          |
 | `search_advanced.py`      | **Advanced Search**. Hologram subgraph expansion and spreading activation wiring.                                         |
+| `merge.py`                | **RRF Merge**. Reciprocal Rank Fusion merge for hybrid search results (ADR-007).                                          |
 | `temporal.py`             | **TemporalMixin**. Sessions, breakthroughs, timeline queries, temporal neighbors.                                         |
 | `analysis.py`             | **AnalysisMixin**. Graph health, gap detection, stale pruning, consolidation.                                             |
+| `analysis_maintenance.py` | **MaintenanceMixin**. Maintenance operations extracted from analysis.py.                                                  |
 | `embedding.py`            | **ML Layer**. Wraps embedding API calls (remote) or local `SentenceTransformer`. Isolated.                                |
 | `embedding_server.py`     | **Embedding Microservice**. Standalone HTTP server for GPU-accelerated embedding generation.                              |
 | `clustering.py`           | **ML Layer**. `scikit-learn` DBSCAN clustering + structural gap detection (`detect_gaps`).                                |
@@ -29,13 +31,15 @@ A manifest of the project structure. Last updated: March 27, 2026.
 | `interfaces.py`           | **Protocols**. Abstract base classes (e.g., `Embedder`) for decoupling.                                                   |
 | `ontology.py`             | **Type System**. Runtime ontology management for custom memory types.                                                     |
 | **Infrastructure**        |                                                                                                                           |
-| `server.py`               | **MCP Server**. Wires services together, exposes 31 functions as MCP Tools. **stdio transport only.**                     |
+| `server.py`               | **MCP Server**. Wires services together, exposes 30 functions as MCP Tools. **stdio transport only.**                     |
 | `lock_manager.py`         | **Concurrency**. Redis-based distributed locking with file-based fallback. REDIS\_\* env vars take precedence.            |
 | `retry.py`                | **Resilience**. `@retry_on_transient` decorator for handling transient connection failures.                               |
 | `repository_queries.py`   | **Query Builder**. Cypher query construction helpers for repository.                                                      |
 | `repository_traversal.py` | **Graph Traversal**. Salience scoring (`log(x)/log(2)` for FalkorDB compat), cross-domain patterns.                       |
 | `graph_algorithms.py`     | **Graph Algorithms**. NetworkX Louvain for community detection + PageRank integration.                                    |
 | `logging_config.py`       | **Logging**. Structured logging configuration.                                                                            |
+| `stats.py`                | **Statistics**. Rolling-window search behaviour statistics (DRIFT-002).                                                   |
+| `update_check.py`         | **Update Checker**. Startup fire-and-forget GitHub releases comparison.                                                   |
 
 ## Dashboard (`src/dashboard/`)
 
@@ -96,7 +100,7 @@ A manifest of the project structure. Last updated: March 27, 2026.
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `e2e_functional.py` | **Exhaustive UAT**. 31-phase, 74-check lifecycle against the live Docker stack (CRUD, search, relationships, observations, temporal, sessions, graph health, strict consistency, associative, hologram, consolidation, ontology, archive/prune, knowledge gaps, cleanup, split-brain, reconnect, router strategies, deep search, bottles, concurrent creates, PRECEDED_BY chain, error recovery, algorithm semantics, point-in-time). |
 
-**Total: 1,118 tests across 78 files, ~98% coverage.**
+**Total: 1,121 tests across 77 files, ~98% coverage.**
 
 ## Configuration
 

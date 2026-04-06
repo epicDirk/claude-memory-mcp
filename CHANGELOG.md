@@ -65,7 +65,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - E2E test suite expanded from 18 to 26 phases.
-- Unit test suite: 1,118 tests across 78 files, 0 failures.
+- Unit test suite: 1,121 tests across 77 files, 0 failures.
 - Test naming convention: all unit tests now follow `test_evil{N}_`/`test_sad{N}_`/`test_happy_`
   pattern (725 functions renamed via automated script).
 - Gauntlet test suite: recovered 9 files (concurrent, contracts, fuzz, golden
