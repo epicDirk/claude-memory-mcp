@@ -26,12 +26,13 @@ class LibrarianAgent:
         self.clustering = clustering_service
 
     async def run_cycle(self) -> dict[str, Any]:
-        """
-        Executes a full maintenance cycle.
+        """Executes a full maintenance cycle.
+
         1. Fetch all nodes.
         2. Cluster them.
         3. Consolidate dense clusters.
-        4. Prune stale data.
+        4. Detect and store gaps.
+        5. Prune stale data.
         """
         logger.info("Starting Librarian Maintenance Cycle...")
         report: dict[str, Any] = {
@@ -44,8 +45,6 @@ class LibrarianAgent:
         }
 
         # 1. Fetch
-        # We need direct access to repo for bulk fetch, or add a tool.
-        # Added get_all_nodes to repo in previous step.
         try:
             nodes = self.memory.repo.get_all_nodes(limit=2000)
             logger.info("Fetched %d nodes for analysis.", len(nodes))
@@ -63,17 +62,28 @@ class LibrarianAgent:
         report["clusters_found"] = len(clusters)
 
         # 3. Consolidate
-        for cluster in clusters:
-            # Heuristic: Only consolidate high cohesion clusters
-            # For now, we consolidate ALL valid clusters as a demo.
-            # In production, we'd check cluster.cohesion_score
+        await self._consolidate_clusters(clusters, report)
 
+        # 4. Gap Detection
+        edges = self.memory.repo.get_all_edges()
+        gaps = detect_gaps(clusters, edges)
+        report["gaps_detected"] = len(gaps)
+        self._store_gap_reports(clusters, gaps, report)
+
+        # 5. Prune Stale
+        await self._prune_stale(report)
+
+        logger.info("Librarian Cycle Complete.")
+        return report
+
+    async def _consolidate_clusters(self, clusters: list[Any], report: dict[str, Any]) -> None:
+        """Consolidate each cluster into a summary entity."""
+        for cluster in clusters:
             summary = self._synthesize_summary(cluster.nodes)
             entity_ids = [n["id"] for n in cluster.nodes if "id" in n]
 
             logger.info("Consolidating Cluster %s with %d nodes.", cluster.id, len(entity_ids))
             try:
-                # Call the existing tool logic
                 res = await self.memory.consolidate_memories(entity_ids, summary)
                 if res and "id" in res:
                     report["consolidations_created"] += 1
@@ -81,58 +91,50 @@ class LibrarianAgent:
                 logger.error("Failed to consolidate cluster %s: %s", cluster.id, e)
                 report["errors"].append(f"Cluster {cluster.id}: {e!s}")
 
-        # 4. Gap Detection
-        edges = self.memory.repo.get_all_edges()
-        gaps = detect_gaps(clusters, edges)
-        report["gaps_detected"] = len(gaps)
-
-        # Store top 3 as GapReport entities
+    def _store_gap_reports(
+        self, clusters: list[Any], gaps: list[Any], report: dict[str, Any]
+    ) -> None:
+        """Store top 3 structural gaps as GapReport entities."""
         gap_limit = 3
         for gap in gaps[:gap_limit]:
             try:
-                ca_nodes = [c for c in clusters if c.id == gap.cluster_a_id]
-                cb_nodes = [c for c in clusters if c.id == gap.cluster_b_id]
-                a_names = ", ".join(
-                    n.get("name", "?") for n in (ca_nodes[0].nodes[:3] if ca_nodes else [])
-                )
-                b_names = ", ".join(
-                    n.get("name", "?") for n in (cb_nodes[0].nodes[:3] if cb_nodes else [])
-                )
-
-                gap_name = f"GAP: [{a_names}] ↔ [{b_names}]"
-                gap_content = (
-                    f"Similarity: {gap.similarity:.0%}, "
-                    f"Cross-edges: {gap.edge_count}, "
-                    f"Bridges: {len(gap.suggested_bridges)}"
-                )
-
-                self.memory.repo.create_node(
-                    "GapReport",
-                    {
-                        "name": gap_name,
-                        "entity_type": "GapReport",
-                        "content": gap_content,
-                        "project_id": "librarian",
-                        "detected_at": datetime.now(UTC).isoformat(),
-                        "cluster_a_id": gap.cluster_a_id,
-                        "cluster_b_id": gap.cluster_b_id,
-                        "similarity": gap.similarity,
-                        "edge_count": gap.edge_count,
-                    },
-                )
+                props = self._build_gap_report(clusters, gap)
+                self.memory.repo.create_node("GapReport", props)
                 report["gap_reports_stored"] += 1
             except (ConnectionError, TimeoutError, OSError) as e:
                 report["errors"].append(f"GapReport: {e!s}")
 
-        # 5. Prune Stale
+    @staticmethod
+    def _build_gap_report(clusters: list[Any], gap: Any) -> dict[str, Any]:
+        """Build node properties for a GapReport entity."""
+        ca_nodes = [c for c in clusters if c.id == gap.cluster_a_id]
+        cb_nodes = [c for c in clusters if c.id == gap.cluster_b_id]
+        a_names = ", ".join(n.get("name", "?") for n in (ca_nodes[0].nodes[:3] if ca_nodes else []))
+        b_names = ", ".join(n.get("name", "?") for n in (cb_nodes[0].nodes[:3] if cb_nodes else []))
+
+        return {
+            "name": f"GAP: [{a_names}] ↔ [{b_names}]",
+            "entity_type": "GapReport",
+            "content": (
+                f"Similarity: {gap.similarity:.0%}, "
+                f"Cross-edges: {gap.edge_count}, "
+                f"Bridges: {len(gap.suggested_bridges)}"
+            ),
+            "project_id": "librarian",
+            "detected_at": datetime.now(UTC).isoformat(),
+            "cluster_a_id": gap.cluster_a_id,
+            "cluster_b_id": gap.cluster_b_id,
+            "similarity": gap.similarity,
+            "edge_count": gap.edge_count,
+        }
+
+    async def _prune_stale(self, report: dict[str, Any]) -> None:
+        """Prune stale entities older than 60 days."""
         try:
             prune_res = await self.memory.prune_stale(days=60)
             report["deleted_stale"] = prune_res.get("deleted_count", 0)
         except (ConnectionError, TimeoutError, OSError, ValueError) as e:
             report["errors"].append(f"Prune: {e!s}")
-
-        logger.info("Librarian Cycle Complete.")
-        return report
 
     def _synthesize_summary(self, nodes: list[dict[str, Any]]) -> str:
         """

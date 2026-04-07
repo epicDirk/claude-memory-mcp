@@ -1,4 +1,4 @@
-"""Core business logic for the Exocortex memory system.
+"""Core business logic for the Claude Memory system.
 
 MemoryService is the public facade — it composes four focused mixins
 (CrudMixin, SearchMixin, TemporalMixin, AnalysisMixin) into a single
@@ -80,3 +80,7 @@ class MemoryService(CrudMixin, CrudMaintenanceMixin, SearchMixin, TemporalMixin,
         self.activation_engine = ActivationEngine(repo=self.repo)
         # Background tasks for fire-and-forget operations
         self._background_tasks: set[asyncio.Task[None]] = set()
+        # Search stats accumulator (DRIFT-002) — default ON, opt-out via env
+        from claude_memory.stats import create_accumulator  # noqa: PLC0415
+
+        self._stats = create_accumulator()
